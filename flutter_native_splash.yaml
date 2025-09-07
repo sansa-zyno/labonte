@@ -1,0 +1,16 @@
+flutter_native_splash:
+  image: "assets/images/labonte-logo256.png"
+  color: "#FFFFFF"
+  #color: "#FF4955"
+  #branding: "assets/images/branding-img.png"
+  #branding_mode: bottom
+  #branding_bottom_padding: 24
+  #android_12:
+  #  image: "assets/images/labonte-logo.png"
+  #  color: "#FFFFFF"
+    #icon_background_color: "#ffffff"
+    #color: "#FF4955"
+    #branding: "assets/images/branding-img.png"
+    #branding_mode: bottom
+    #branding_bottom_padding: 24
+  android_gravity: center
