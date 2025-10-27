@@ -1,5 +1,5 @@
 flutter_native_splash:
-  image: "assets/images/labonte-logo256.png"
+  image: "assets/images/logo-nobg256.png"
   color: "#FFFFFF"
   #color: "#FF4955"
   #branding: "assets/images/branding-img.png"

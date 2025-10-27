@@ -3,7 +3,6 @@ import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_icons.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
-import 'package:french_app/modals/alert.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/widgets/custom_button.dart';
@@ -147,7 +146,7 @@ class AppConstants {
     );
   }
 
-  static Future<void> showExitExcerciseWarning({required BuildContext context, Function({required BuildContext buildContext})? goToBack}) async {
+  /*static Future<void> showExitExcerciseWarning({required BuildContext context, Function({required BuildContext buildContext})? goToBack}) async {
     bool result = await showDialog(
         context: context,
         useSafeArea: false,
@@ -164,7 +163,7 @@ class AppConstants {
         changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0)); //not really needed
       }
     }
-  }
+  }*/
 
   /*static Widget buildPlaceHolder({required String title}) {
     return Shimmer.fromColors(

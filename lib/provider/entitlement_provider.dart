@@ -18,7 +18,7 @@ class EntitlementProvider extends ChangeNotifier {
   Future updateCustomerStatus() async {
     final customerInfo = await Purchases.getCustomerInfo();
     final entitlements = customerInfo.entitlements.active.values.toList();
-    _entitlement = entitlements.isEmpty ? Entitlement.free : Entitlement.allcourses;
+    _entitlement = entitlements.isEmpty ? Entitlement.free : Entitlement.pro;
     notifyListeners();
   }
 }

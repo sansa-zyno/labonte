@@ -21,14 +21,16 @@ class InputTextType extends StatefulWidget {
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
-  final double previousExerciseScore;
+  final double exerciseScore;
+  final List<double>? exerciseScoreTrackingList;
   const InputTextType({
     required this.snapshot,
     required this.goToNext,
     required this.goToBack,
     required this.lessonData,
     required this.exerciseIndex,
-    required this.previousExerciseScore,
+    required this.exerciseScore,
+    required this.exerciseScoreTrackingList,
     super.key,
   });
 
@@ -66,27 +68,22 @@ class _InputTextTypeState extends State<InputTextType> {
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-    // Clean up all controllers to prevent memory leaks
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
+    //bool canGoback = Navigator.canPop(context);
     return PopScope(
       canPop: false,
       onPopInvoked: (x) {
-        AppConstants.showExitExcerciseWarning(context: context, goToBack: widget.goToBack);
+        //AppConstants.showExitExcerciseWarning(context: context, goToBack: widget.goToBack);
+        widget.goToBack(buildContext: context);
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: SizedBox(),
+        /*appBar: AppBar(
+          leading: const SizedBox(),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           toolbarHeight: 0,
-        ),
+        ),*/
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Column(
@@ -135,11 +132,18 @@ class _InputTextTypeState extends State<InputTextType> {
                 },
               ),
               SizedBox(height: getVerticalSize(15, context)),
-              if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('instruction'))
+              if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('instruction') && widget.snapshot['instruction'].toString().isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
                 ),
+              CustomText(
+                text: 'Note: You will need to long-press the letters in your keyboard to get the French accent\'s characters.',
+                size: fontSizeSmall,
+                color: AppColors.primaryColor,
+                weight: FontWeight.bold,
+              ),
+              SizedBox(height: getVerticalSize(8, context)),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -291,7 +295,8 @@ class _InputTextTypeState extends State<InputTextType> {
                                 goToNext: widget.goToNext,
                                 lessonData: widget.lessonData,
                                 exerciseIndex: widget.exerciseIndex,
-                                previousExerciseScore: widget.previousExerciseScore,
+                                exerciseScore: widget.exerciseScore,
+                                exerciseScoreTrackingList: widget.exerciseScoreTrackingList,
                               ),
                             ));
                       });

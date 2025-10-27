@@ -60,7 +60,7 @@ class _TreeTypeState extends State<TreeType> {
     flatList = treeMap.values.toList().expand((innerList) => innerList).toList();
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
     filename = 'Lesson${widget.lessonData.lessonIndex}_${widget.snapshot.id}';
-    textToSpeechProvider.playFullAudio(result: flatList, snapshot: widget.snapshot, filename: filename);
+    textToSpeechProvider.playFullAudio(result: flatList, lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
   }
 
   @override
@@ -73,111 +73,117 @@ class _TreeTypeState extends State<TreeType> {
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
-    return Scaffold(
-        body: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        children: [
-          SizedBox(height: appBarSpace),
-          Padding(
-            padding: const EdgeInsets.only(right: 15),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InkWell(
-                  onTap: () {
-                    if (!textToSpeechProvider.loading) {
-                      textToSpeechProvider.stop().then((_) {
-                        widget.goToBack(buildContext: context);
-                      });
-                    }
-                  },
-                  child: Icon(Icons.arrow_back),
-                ),
-                Spacer(),
-                CustomText(
-                  text: widget.snapshot['title'],
-                  size: getFontSize(18, context),
-                  weight: FontWeight.w500,
-                ),
-                Spacer(),
-              ],
-            ),
-          ),
-          SizedBox(height: getVerticalSize(15, context)),
-          AppConstants.buildHeaderSpeaker(
-            context: context,
-            icon: textToSpeechProvider.playerState == AudioPlayerState.playing
-                ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
-                : Padding(
-                    padding: const EdgeInsets.only(right: 8, top: 8),
-                    child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (x) {
+        if (!textToSpeechProvider.loading) {
+          textToSpeechProvider.stop().then((_) {
+            widget.goToBack(buildContext: context);
+          });
+        }
+      },
+      child: Scaffold(
+          body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          children: [
+            SizedBox(height: appBarSpace),
+            Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).maybePop();
+                    },
+                    child: Icon(Icons.arrow_back),
                   ),
-            loading: textToSpeechProvider.loading,
-            callBack: () async {
-              if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
-                await textToSpeechProvider.pause();
-              } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
-                await textToSpeechProvider.resume();
-              } else {
-                await textToSpeechProvider.repeatFullAudio(filename: filename);
-              }
-            },
-          ),
-          SizedBox(height: getVerticalSize(15, context)),
-          CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
-          SizedBox(height: getVerticalSize(15, context)),
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _horizontalController,
-              scrollDirection: Axis.horizontal,
+                  Spacer(),
+                  CustomText(
+                    text: widget.snapshot['title'],
+                    size: getFontSize(18, context),
+                    weight: FontWeight.w500,
+                  ),
+                  Spacer(),
+                ],
+              ),
+            ),
+            SizedBox(height: getVerticalSize(15, context)),
+            AppConstants.buildHeaderSpeaker(
+              context: context,
+              icon: textToSpeechProvider.playerState == AudioPlayerState.playing
+                  ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
+                  : Padding(
+                      padding: const EdgeInsets.only(right: 8, top: 8),
+                      child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
+                    ),
+              loading: textToSpeechProvider.loading,
+              callBack: () async {
+                if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
+                  await textToSpeechProvider.pause();
+                } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
+                  await textToSpeechProvider.resume();
+                } else {
+                  await textToSpeechProvider.repeatFullAudio(filename: filename);
+                }
+              },
+            ),
+            SizedBox(height: getVerticalSize(15, context)),
+            CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
+            SizedBox(height: getVerticalSize(15, context)),
+            Expanded(
               child: SingleChildScrollView(
-                controller: _verticalController,
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 1.5, // Double the screen width
-                  height: MediaQuery.of(context).size.height * 1.5, // 1.5 times the screen height
-                  child: CustomPaint(
-                    painter: FamilyTreePainter(treeMap),
-                    size: Size.infinite,
+                controller: _horizontalController,
+                scrollDirection: Axis.horizontal,
+                child: SingleChildScrollView(
+                  controller: _verticalController,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 1.5, // Double the screen width
+                    height: MediaQuery.of(context).size.height * 1.5, // 1.5 times the screen height
+                    child: CustomPaint(
+                      painter: FamilyTreePainter(treeMap),
+                      size: Size.infinite,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            height: getVerticalSize(30, context),
-          ),
-          Center(
-            child: CustomButton(
-              width: getHorizontalSize(250, context),
-              text: 'Repeat audio',
-              textColor: AppColors.primaryColor,
-              border: Border.all(color: AppColors.primaryColor, width: 1.5),
-              onpressed: () {
-                textToSpeechProvider.repeatFullAudio(filename: filename);
-              },
+            SizedBox(
+              height: getVerticalSize(30, context),
             ),
-          ),
-          SizedBox(
-            height: getVerticalSize(15, context),
-          ),
-          Opacity(
-            opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
-            child: CustomButton(
-              text: 'Ok, got it',
-              color: AppColors.buttonColor,
-              onpressed: () {
-                if (!textToSpeechProvider.loading) {
-                  textToSpeechProvider.stop().then((_) {
-                    widget.goToNext(buildContext: context);
-                  });
-                }
-              },
+            Center(
+              child: CustomButton(
+                width: getHorizontalSize(250, context),
+                text: 'Repeat audio',
+                textColor: AppColors.primaryColor,
+                border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                onpressed: () {
+                  textToSpeechProvider.repeatFullAudio(filename: filename);
+                },
+              ),
             ),
-          )
-        ],
-      ),
-    ));
+            SizedBox(
+              height: getVerticalSize(15, context),
+            ),
+            Opacity(
+              opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
+              child: CustomButton(
+                text: 'Ok, got it',
+                color: AppColors.buttonColor,
+                onpressed: () {
+                  if (!textToSpeechProvider.loading) {
+                    textToSpeechProvider.stop().then((_) {
+                      widget.goToNext(buildContext: context);
+                    });
+                  }
+                },
+              ),
+            )
+          ],
+        ),
+      )),
+    );
   }
 }
 

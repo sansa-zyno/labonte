@@ -8,7 +8,7 @@ import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
-import 'package:french_app/screens/lessons_completed.dart';
+import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -20,7 +20,7 @@ class MatchingType extends StatefulWidget {
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
-  final double previousExerciseScore;
+  final double exerciseScore;
   const MatchingType({
     Key? key,
     required this.snapshot,
@@ -28,7 +28,7 @@ class MatchingType extends StatefulWidget {
     required this.goToBack,
     required this.lessonData,
     required this.exerciseIndex,
-    required this.previousExerciseScore,
+    required this.exerciseScore,
   }) : super(key: key);
 
   @override
@@ -58,18 +58,20 @@ class _MatchingTypeState extends State<MatchingType> {
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
+    //bool canGoback = Navigator.canPop(context);
     return PopScope(
       canPop: false,
       onPopInvoked: (x) {
-        AppConstants.showExitExcerciseWarning(context: context, goToBack: widget.goToBack);
+        //AppConstants.showExitExcerciseWarning(context: context, goToBack: widget.goToBack);
+        widget.goToBack(buildContext: context);
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: SizedBox(),
+        /*appBar: AppBar(
+          leading: const SizedBox(),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           toolbarHeight: 0,
-        ),
+        ),*/
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Column(
@@ -212,7 +214,7 @@ class _MatchingTypeState extends State<MatchingType> {
                       if (!textToSpeechProvider.loading) {
                         textToSpeechProvider.stop().then((_) {
                           if (widget.exerciseIndex + 1 >= widget.lessonData.exercises.length) {
-                            double totalScore = widget.previousExerciseScore + score;
+                            double totalScore = widget.exerciseScore + score;
                             changeScreenReplacement(
                                 context,
                                 BottomNavbar(

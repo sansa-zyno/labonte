@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_icons.dart';
@@ -6,6 +7,7 @@ import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/screens/getting_started.dart';
 import 'package:french_app/services/auth.dart';
+import 'package:french_app/services/local_storage.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:provider/provider.dart';
@@ -77,7 +79,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Divider(color: AppColors.lightGrey3),
             ListTile(
               onTap: () async {
-                await SharePlus.instance.share(ShareParams(text: 'hello'));
+                if (Platform.isAndroid) {
+                  await SharePlus.instance.share(ShareParams(text: 'https://play.google.com/store/apps/details?id=com.labonte.www'));
+                }
               },
               visualDensity: VisualDensity(vertical: -4),
               contentPadding: EdgeInsets.all(0),
@@ -100,13 +104,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               onTap: () async {
                 await AuthService.signOut();
+                await LocalStorage().clearPref();
                 changeScreenRemoveUntill(context, GettingStarted());
               },
               visualDensity: VisualDensity(vertical: -4),
               contentPadding: EdgeInsets.all(0),
-              leading: Image.asset(AppIcons.logout, color: Colors.black, height: getSize(20, context)),
+              leading: Image.asset(AppIcons.logout, color: AppColors.red.withOpacity(0.7), height: getSize(20, context)),
               title: CustomText(text: 'Logout', color: AppColors.red.withOpacity(0.7)),
-              trailing: Icon(Icons.arrow_forward_ios, size: 20),
+              trailing: Icon(Icons.arrow_forward_ios, color: AppColors.red.withOpacity(0.7), size: 20),
             )
           ],
         ),
@@ -115,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> launchEmail() async {
-    final url = 'mailto:"labontelanguages.com@gmail.com"';
+    const url = 'mailto:"labontelanguages.com@gmail.com"';
     await launchUrl(Uri.parse(url));
   }
 

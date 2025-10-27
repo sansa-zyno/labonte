@@ -48,7 +48,8 @@ class _ImageTypeState extends State<ImageType> {
             newImageList = images!.sublist(safeStart, safeEnd);
           });
           filename = 'Lesson${widget.lessonData.lessonIndex}_${widget.snapshot.id}_$subListStart$sublistEnd';
-          textToSpeechProvider.playFullAudio(result: newImageList, snapshot: widget.snapshot, filename: filename);
+          textToSpeechProvider.playFullAudio(
+              result: newImageList, lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
           //To make subListStart == data!.length after all items has been shown
           if (sublistEnd == images!.length) {
             subListStart = sublistEnd;
@@ -82,265 +83,273 @@ class _ImageTypeState extends State<ImageType> {
     }
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
     filename = 'Lesson${widget.lessonData.lessonIndex}_${widget.snapshot.id}_$subListStart$sublistEnd';
-    textToSpeechProvider.playFullAudio(result: newImageList, snapshot: widget.snapshot, filename: filename);
+    textToSpeechProvider.playFullAudio(
+        result: newImageList, lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
   }
 
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: appBarSpace),
-            Padding(
-              padding: const EdgeInsets.only(right: 15),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      if (!textToSpeechProvider.loading) {
-                        textToSpeechProvider.stop().then((_) {
-                          widget.goToBack(buildContext: context);
-                        });
-                      }
-                    },
-                    child: Icon(Icons.arrow_back),
-                  ),
-                  Spacer(),
-                  CustomText(text: widget.snapshot['title'], size: getFontSize(18, context), weight: FontWeight.w500),
-                  Spacer(),
-                ],
-              ),
-            ),
-            SizedBox(height: getVerticalSize(15, context)),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Spacer(flex: 3),
-                AppConstants.buildHeaderSpeaker(
-                  context: context,
-                  icon: textToSpeechProvider.playerState == AudioPlayerState.playing
-                      ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
-                      : Padding(
-                          padding: const EdgeInsets.only(right: 8, top: 8),
-                          child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
-                        ),
-                  loading: textToSpeechProvider.loading,
-                  callBack: () async {
-                    if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
-                      await textToSpeechProvider.pause();
-                    } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
-                      await textToSpeechProvider.resume();
-                    } else {
-                      await textToSpeechProvider.repeatFullAudio(filename: filename);
-                    }
-                  },
-                ),
-                Spacer(flex: 1),
-                GestureDetector(
-                  onTap: () {
-                    textToSpeechProvider.repeatFullAudio(filename: filename);
-                  },
-                  child: Row(children: [
-                    CustomText(text: 'Repeat audio', size: getFontSize(10, context)),
-                    SizedBox(width: 5),
-                    Image.asset(AppImages.speaker, height: 10, color: Colors.black45)
-                  ]),
-                )
-              ],
-            ),
-            SizedBox(height: getVerticalSize(15, context)),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (x) {
+        if (!textToSpeechProvider.loading) {
+          textToSpeechProvider.stop().then((_) {
+            widget.goToBack(buildContext: context);
+          });
+        }
+      },
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: appBarSpace),
+              Padding(
+                padding: const EdgeInsets.only(right: 15),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('instruction'))
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(text: widget.snapshot['instruction'], size: getFontSize(13, context), weight: FontWeight.w500),
-                          SizedBox(height: getVerticalSize(10, context)),
-                        ],
-                      ),
-                    if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('note'))
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: getVerticalSize(5, context)),
-                          CustomText(text: widget.snapshot['note'], size: getFontSize(13, context)),
-                          SizedBox(height: getVerticalSize(8, context)),
-                        ],
-                      ),
-                    if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('example'))
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: getVerticalSize(8, context)),
-                          CustomText(text: widget.snapshot['example']['title'], size: getFontSize(13, context)),
-                          SizedBox(height: getVerticalSize(5, context)),
-                          CachedImage(widget.snapshot['example']['image'], height: 75, fit: BoxFit.cover),
-                          SizedBox(height: getVerticalSize(8, context)),
-                          CustomText(text: widget.snapshot['example']['body'], size: getFontSize(13, context)),
-                          SizedBox(height: getVerticalSize(10, context)),
-                        ],
-                      ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      //transitionBuilder: (Widget child, Animation<double> animation) {
-                      //  return FadeTransition(opacity: animation, child: child);
-                      //},
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: Offset(1.0, 0.0), // Slide in from right
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: ScaleTransition(
-                            scale: Tween<double>(
-                              begin: 0.8, // Slightly smaller at the start
-                              end: 1.0,
-                            ).animate(animation),
-                            child: child,
-                          ),
-                        );
+                    InkWell(
+                      onTap: () {
+                        Navigator.of(context).maybePop();
                       },
-                      child: widget.snapshot['type'] == 'image'
-                          ? GridView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.all(0),
-                              itemCount: newImageList!.length,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 1.0,
-                                crossAxisSpacing: 15,
-                              ),
-                              itemBuilder: (ctx, index) {
-                                Map<String, dynamic> usedMap = newImageList![index] as Map<String, dynamic>;
-                                if (usedMap.entries.toList()[1].key == 'image') {
-                                  usedMap = Map.fromEntries(usedMap.entries.toList().reversed);
-                                }
-                                return Column(
-                                  children: [
-                                    usedMap.entries.toList()[1].key != '*'
-                                        ? CustomText(
-                                            text: '${usedMap.entries.toList()[1].key}',
-                                            size: getFontSize(16, context),
-                                            weight: FontWeight.w500,
-                                          )
-                                        : SizedBox.shrink(),
-                                    usedMap.entries.toList()[1].key != '*' ? SizedBox(height: getVerticalSize(8, context)) : SizedBox.shrink(),
-                                    Container(
-                                      decoration: BoxDecoration(color: AppColors.lightGrey3, borderRadius: BorderRadius.circular(15)),
-                                      child: Column(
-                                        children: [
-                                          SizedBox(height: 10),
-                                          CachedImage('${newImageList![index]['image']}', height: 50, fit: BoxFit.fitWidth),
-                                          Divider(),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                                            child: CustomText(text: '${usedMap.entries.toList()[1].value}', textAlign: TextAlign.center),
-                                          ),
-                                          SizedBox(height: 15)
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                );
-                              })
-                          : widget.snapshot['type'] == 'image-no-container'
-                              ? GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.all(0),
-                                  itemCount: newImageList!.length,
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 4,
-                                    childAspectRatio: 0.78,
-                                    crossAxisSpacing: 15,
-                                    mainAxisSpacing: 0,
-                                  ),
-                                  itemBuilder: (ctx, index) {
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CachedImage('${newImageList![index]['image']}', height: 50, fit: BoxFit.fitWidth),
-                                        CustomText(text: '${newImageList![index]['name']}', size: fontSizeSmall - 1, textAlign: TextAlign.center),
-                                      ],
-                                    );
-                                  })
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.only(top: 10),
-                                  itemCount: newImageList!.length,
-                                  itemBuilder: (ctx, index) {
-                                    List<String> orderedKeys = List<String>.from(newImageList![index].keys);
-                                    orderedKeys.remove('image');
-                                    orderedKeys.remove('or');
-                                    orderedKeys.insert(1, 'image');
-                                    orderedKeys.insert(2, 'or');
-                                    return Container(
-                                      padding: EdgeInsets.all(15),
-                                      margin: EdgeInsets.only(bottom: 15),
-                                      decoration: BoxDecoration(color: AppColors.lightGrey3, borderRadius: BorderRadius.circular(15)),
-                                      child: Row(
-                                        children: [
-                                          CachedImage('${newImageList![index]['image']}', width: 50, height: 50, fit: BoxFit.cover),
-                                          SizedBox(width: getHorizontalSize(15, context)),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                CustomText(text: '${orderedKeys[0]}'),
-                                                SizedBox(height: getVerticalSize(8, context)),
-                                                CustomText(text: '${newImageList![index][orderedKeys[0]]}'),
-                                                if (newImageList![index].containsKey('or'))
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      SizedBox(height: getVerticalSize(8, context)),
-                                                      Padding(padding: const EdgeInsets.only(left: 60), child: CustomText(text: 'Or')),
-                                                      SizedBox(height: getVerticalSize(8, context)),
-                                                      CustomText(text: '${newImageList![index]['or'].entries.toList()[0].key}'),
-                                                      SizedBox(height: getVerticalSize(8, context)),
-                                                      CustomText(text: '${newImageList![index]['or'].entries.toList()[0].value}'),
-                                                    ],
-                                                  )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  }),
+                      child: Icon(Icons.arrow_back),
                     ),
+                    Spacer(),
+                    CustomText(text: widget.snapshot['title'], size: getFontSize(18, context), weight: FontWeight.w500),
+                    Spacer(),
                   ],
                 ),
               ),
-            ),
-            SizedBox(height: getVerticalSize(15, context)),
-            Opacity(
-              opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
-              child: CustomButton(
-                text: 'Ok, got it',
-                color: AppColors.buttonColor,
-                onpressed: () {
-                  if (!textToSpeechProvider.loading) {
-                    textToSpeechProvider.stop().then((_) {
-                      nextLesson();
-                    });
-                  }
-                },
+              SizedBox(height: getVerticalSize(15, context)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Spacer(flex: 3),
+                  AppConstants.buildHeaderSpeaker(
+                    context: context,
+                    icon: textToSpeechProvider.playerState == AudioPlayerState.playing
+                        ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
+                        : Padding(
+                            padding: const EdgeInsets.only(right: 8, top: 8),
+                            child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
+                          ),
+                    loading: textToSpeechProvider.loading,
+                    callBack: () async {
+                      if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
+                        await textToSpeechProvider.pause();
+                      } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
+                        await textToSpeechProvider.resume();
+                      } else {
+                        await textToSpeechProvider.repeatFullAudio(filename: filename);
+                      }
+                    },
+                  ),
+                  Spacer(flex: 1),
+                  GestureDetector(
+                    onTap: () {
+                      textToSpeechProvider.repeatFullAudio(filename: filename);
+                    },
+                    child: Row(children: [
+                      CustomText(text: 'Repeat audio', size: getFontSize(10, context)),
+                      SizedBox(width: 5),
+                      Image.asset(AppImages.speaker, height: 10, color: Colors.black45)
+                    ]),
+                  )
+                ],
               ),
-            ),
-            SizedBox(height: getVerticalSize(30, context)),
-          ],
+              SizedBox(height: getVerticalSize(15, context)),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('instruction'))
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(text: widget.snapshot['instruction'], size: getFontSize(13, context), weight: FontWeight.w500),
+                            SizedBox(height: getVerticalSize(10, context)),
+                          ],
+                        ),
+                      if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('note'))
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: getVerticalSize(5, context)),
+                            CustomText(text: widget.snapshot['note'], size: getFontSize(13, context)),
+                            SizedBox(height: getVerticalSize(8, context)),
+                          ],
+                        ),
+                      if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('example'))
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: getVerticalSize(8, context)),
+                            CustomText(text: widget.snapshot['example']['title'], size: getFontSize(13, context)),
+                            SizedBox(height: getVerticalSize(5, context)),
+                            CachedImage(widget.snapshot['example']['image'], height: 75, fit: BoxFit.cover),
+                            SizedBox(height: getVerticalSize(8, context)),
+                            CustomText(text: widget.snapshot['example']['body'], size: getFontSize(13, context)),
+                            SizedBox(height: getVerticalSize(10, context)),
+                          ],
+                        ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        //transitionBuilder: (Widget child, Animation<double> animation) {
+                        //  return FadeTransition(opacity: animation, child: child);
+                        //},
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: Offset(1.0, 0.0), // Slide in from right
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: ScaleTransition(
+                              scale: Tween<double>(
+                                begin: 0.8, // Slightly smaller at the start
+                                end: 1.0,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: widget.snapshot['type'] == 'image'
+                            ? GridView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                padding: EdgeInsets.all(0),
+                                itemCount: newImageList!.length,
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 1.0,
+                                  mainAxisSpacing: 15,
+                                  crossAxisSpacing: 15,
+                                ),
+                                itemBuilder: (ctx, index) {
+                                  Map<String, dynamic> usedMap = newImageList![index] as Map<String, dynamic>;
+                                  if (usedMap.entries.toList()[1].key == 'image') {
+                                    usedMap = Map.fromEntries(usedMap.entries.toList().reversed);
+                                  }
+                                  return Column(
+                                    children: [
+                                      usedMap.entries.toList()[1].key != '*'
+                                          ? CustomText(
+                                              text: '${usedMap.entries.toList()[1].key}',
+                                              size: getFontSize(16, context),
+                                              weight: FontWeight.w500,
+                                            )
+                                          : SizedBox.shrink(),
+                                      usedMap.entries.toList()[1].key != '*' ? SizedBox(height: getVerticalSize(8, context)) : SizedBox.shrink(),
+                                      Container(
+                                        decoration: BoxDecoration(color: AppColors.lightGrey3, borderRadius: BorderRadius.circular(15)),
+                                        child: Column(
+                                          children: [
+                                            SizedBox(height: 10),
+                                            CachedImage('${newImageList![index]['image']}', height: 50, fit: BoxFit.fitWidth),
+                                            Divider(),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5),
+                                              child: CustomText(text: '${usedMap.entries.toList()[1].value}', textAlign: TextAlign.center),
+                                            ),
+                                            SizedBox(height: 15)
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                })
+                            : widget.snapshot['type'] == 'image-no-container'
+                                ? GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.all(0),
+                                    itemCount: newImageList!.length,
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 4,
+                                      childAspectRatio: 0.78,
+                                      crossAxisSpacing: 15,
+                                      mainAxisSpacing: 0,
+                                    ),
+                                    itemBuilder: (ctx, index) {
+                                      return Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CachedImage('${newImageList![index]['image']}', height: 50, fit: BoxFit.fitWidth),
+                                          CustomText(text: '${newImageList![index]['name']}', size: fontSizeExtraSmall, textAlign: TextAlign.center),
+                                        ],
+                                      );
+                                    })
+                                : ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.only(top: 10),
+                                    itemCount: newImageList!.length,
+                                    itemBuilder: (ctx, index) {
+                                      List<String> orderedKeys = List<String>.from(newImageList![index].keys);
+                                      orderedKeys.remove('image');
+                                      orderedKeys.remove('or');
+                                      orderedKeys.insert(1, 'image');
+                                      orderedKeys.insert(2, 'or');
+                                      return Container(
+                                        padding: EdgeInsets.all(15),
+                                        margin: EdgeInsets.only(bottom: 15),
+                                        decoration: BoxDecoration(color: AppColors.lightGrey3, borderRadius: BorderRadius.circular(15)),
+                                        child: Row(
+                                          children: [
+                                            CachedImage('${newImageList![index]['image']}', width: 50, height: 50, fit: BoxFit.cover),
+                                            SizedBox(width: getHorizontalSize(15, context)),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  CustomText(text: '${orderedKeys[0]}'),
+                                                  SizedBox(height: getVerticalSize(8, context)),
+                                                  CustomText(text: '${newImageList![index][orderedKeys[0]]}'),
+                                                  if (newImageList![index].containsKey('or'))
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        SizedBox(height: getVerticalSize(8, context)),
+                                                        Padding(padding: const EdgeInsets.only(left: 60), child: CustomText(text: 'Or')),
+                                                        SizedBox(height: getVerticalSize(8, context)),
+                                                        CustomText(text: '${newImageList![index]['or'].entries.toList()[0].key}'),
+                                                        SizedBox(height: getVerticalSize(8, context)),
+                                                        CustomText(text: '${newImageList![index]['or'].entries.toList()[0].value}'),
+                                                      ],
+                                                    )
+                                                ],
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: getVerticalSize(15, context)),
+              Opacity(
+                opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
+                child: CustomButton(
+                  text: 'Ok, got it',
+                  color: AppColors.buttonColor,
+                  onpressed: () {
+                    if (!textToSpeechProvider.loading) {
+                      textToSpeechProvider.stop().then((_) {
+                        nextLesson();
+                      });
+                    }
+                  },
+                ),
+              ),
+              SizedBox(height: getVerticalSize(30, context)),
+            ],
+          ),
         ),
       ),
     );

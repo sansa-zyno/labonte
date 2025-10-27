@@ -26,7 +26,7 @@ class ShowDialogWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
         content: SizedBox(
-          height: 150,
+          height: 165,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

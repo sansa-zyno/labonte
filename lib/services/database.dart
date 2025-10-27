@@ -6,10 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/models/review.dart';
 import 'package:french_app/models/user.dart';
-import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/services/local_storage.dart';
-import 'package:provider/provider.dart';
 
 class DatabaseService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -26,7 +24,7 @@ class DatabaseService {
     try {
       await _firestore.collection(_usersCollection).doc(userId).set(user.toMap());
     } catch (e) {
-      print('Error setting user: $e');
+      //print('Error setting user: $e');
       rethrow;
     }
   }
@@ -36,7 +34,7 @@ class DatabaseService {
     try {
       await _firestore.collection(_usersCollection).doc(userId).update(user.toMap());
     } catch (e) {
-      print('Error updating user: $e');
+      //print('Error updating user: $e');
       rethrow;
     }
   }
@@ -50,7 +48,7 @@ class DatabaseService {
       }
       return null;
     } catch (e) {
-      print('Error getting user: $e');
+      //print('Error getting user: $e');
       rethrow;
     }
   }
@@ -62,7 +60,7 @@ class DatabaseService {
       if (user == null) return null;
       return getUser(user.uid);
     } catch (e) {
-      print('Error getting current user model: $e');
+      //print('Error getting current user model: $e');
       rethrow;
     }
   }
@@ -87,12 +85,12 @@ class DatabaseService {
       'score': score,
       'lastUpdateTime': lastUpdateTime.millisecondsSinceEpoch
     };
-    await LocalStorage().setString('continueSubLessonIndex', '$currentSubLessonIndex');
+    /* await LocalStorage().setString('continueSubLessonIndex', '$currentSubLessonIndex');
     await LocalStorage().setString('continueExerciseIndex', '$currentExerciseIndex');
-    if (context.mounted) {
+     if (context.mounted) {
       Provider.of<AppProvider>(context, listen: false).continueSubLessonIndex = currentSubLessonIndex;
       Provider.of<AppProvider>(context, listen: false).continueExerciseIndex = currentExerciseIndex;
-    }
+    }*/
     await LocalStorage().setString('savedLessonsProgress', jsonEncode(progress));
     //log('Time Difference   ' + DateTime.now().difference(_lastSyncedLessonProgress).inSeconds.toString());
     if (DateTime.now().difference(_lastSyncedLessonProgress).inSeconds > 30) {
@@ -126,7 +124,7 @@ class DatabaseService {
         await ref.set(lessonProgress.toMap());
       }
     } catch (e) {
-      print('Error updating lesson progress: $e');
+      //print('Error updating lesson progress: $e');
       rethrow;
     }
   }
@@ -184,7 +182,7 @@ class DatabaseService {
         yield merged;
       }
     } catch (e) {
-      print('Error getting user lesson progress: $e');
+      //print('Error getting user lesson progress: $e');
       rethrow;
     }
   }
@@ -194,7 +192,7 @@ class DatabaseService {
     try {
       await _firestore.collection(_usersCollection).doc(userId).collection('reviews').doc(lessonId).set(review.toMap());
     } catch (e) {
-      print('Error adding to reviews: $e');
+      //print('Error adding to reviews: $e');
       rethrow;
     }
   }
@@ -208,7 +206,7 @@ class DatabaseService {
         return orderedDocs.map((doc) => Review.fromMap(doc.data())).toList();
       });
     } catch (e) {
-      print('Error getting user reviews: $e');
+      //print('Error getting user reviews: $e');
       rethrow;
     }
   }
@@ -222,7 +220,7 @@ class DatabaseService {
         await ref.delete();
       }
     } catch (e) {
-      print('Error removing from reviews: $e');
+      //print('Error removing from reviews: $e');
       rethrow;
     }
   }

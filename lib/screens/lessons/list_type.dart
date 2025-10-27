@@ -46,7 +46,7 @@ class _ListTypeState extends State<ListType> {
         newData = data!.sublist(safeStart, safeEnd);
       });
       filename = 'Lesson${widget.lessonData.lessonIndex}_${widget.snapshot.id}_$subListStart$sublistEnd';
-      textToSpeechProvider.playFullAudio(result: newData, snapshot: widget.snapshot, filename: filename);
+      textToSpeechProvider.playFullAudio(result: newData, lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
       //To make subListStart == data!.length after all items has been shown
       if (sublistEnd == data!.length) {
         subListStart = sublistEnd;
@@ -68,132 +68,139 @@ class _ListTypeState extends State<ListType> {
     }
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
     filename = 'Lesson${widget.lessonData.lessonIndex}_${widget.snapshot.id}_$subListStart$sublistEnd';
-    textToSpeechProvider.playFullAudio(result: newData, snapshot: widget.snapshot, filename: filename);
+    textToSpeechProvider.playFullAudio(result: newData, lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
   }
 
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: appBarSpace),
-            Padding(
-              padding: const EdgeInsets.only(right: 15),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      if (!textToSpeechProvider.loading) {
-                        textToSpeechProvider.stop().then((_) {
-                          widget.goToBack(buildContext: context);
-                        });
-                      }
-                    },
-                    child: Icon(Icons.arrow_back),
-                  ),
-                  Spacer(),
-                  CustomText(
-                    text: widget.snapshot['title'],
-                    size: getFontSize(18, context),
-                    weight: FontWeight.w500,
-                  ),
-                  Spacer(),
-                ],
-              ),
-            ),
-            SizedBox(height: getVerticalSize(15, context)),
-            AppConstants.buildHeaderSpeaker(
-              context: context,
-              icon: textToSpeechProvider.playerState == AudioPlayerState.playing
-                  ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
-                  : Padding(
-                      padding: const EdgeInsets.only(right: 8, top: 8),
-                      child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
-                    ),
-              loading: textToSpeechProvider.loading,
-              callBack: () async {
-                if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
-                  await textToSpeechProvider.pause();
-                } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
-                  await textToSpeechProvider.resume();
-                } else {
-                  await textToSpeechProvider.playFullAudio(result: newData, snapshot: widget.snapshot, filename: filename);
-                }
-              },
-            ),
-            SizedBox(height: getVerticalSize(15, context)),
-            CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
-            SizedBox(height: getVerticalSize(15, context)),
-            if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('note'))
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (x) {
+        if (!textToSpeechProvider.loading) {
+          textToSpeechProvider.stop().then((_) {
+            widget.goToBack(buildContext: context);
+          });
+        }
+      },
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: appBarSpace),
               Padding(
-                padding: EdgeInsets.only(bottom: 10),
-                child: CustomText(text: widget.snapshot['note'], size: fontSizeSmall, weight: FontWeight.w500),
+                padding: const EdgeInsets.only(right: 15),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Navigator.of(context).maybePop();
+                      },
+                      child: Icon(Icons.arrow_back),
+                    ),
+                    Spacer(),
+                    CustomText(
+                      text: widget.snapshot['title'],
+                      size: getFontSize(18, context),
+                      weight: FontWeight.w500,
+                    ),
+                    Spacer(),
+                  ],
+                ),
               ),
-            Expanded(
-              flex: 10,
-              child: ListView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.all(0),
-                  itemCount: newData?.length,
-                  itemBuilder: (ctx, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            text: '${index + idx + 1}.',
-                            size: getFontSize(16, context),
-                          ),
-                          SizedBox(
-                            width: getHorizontalSize(8, context),
-                          ),
-                          Expanded(
-                            child: CustomText(
-                              text: newData![index],
-                              size: getFontSize(16, context),
-                            ),
-                          )
-                        ],
+              SizedBox(height: getVerticalSize(15, context)),
+              AppConstants.buildHeaderSpeaker(
+                context: context,
+                icon: textToSpeechProvider.playerState == AudioPlayerState.playing
+                    ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
+                    : Padding(
+                        padding: const EdgeInsets.only(right: 8, top: 8),
+                        child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
                       ),
-                    );
-                  }),
-            ),
-            Spacer(flex: 1),
-            Center(
-              child: CustomButton(
-                width: getHorizontalSize(250, context),
-                text: 'Repeat audio',
-                textColor: AppColors.primaryColor,
-                border: Border.all(color: AppColors.primaryColor, width: 1.5),
-                onpressed: () {
-                  textToSpeechProvider.repeatFullAudio(filename: filename);
-                },
-              ),
-            ),
-            SizedBox(height: getVerticalSize(15, context)),
-            Opacity(
-              opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
-              child: CustomButton(
-                text: 'Ok, got it',
-                color: AppColors.buttonColor,
-                onpressed: () {
-                  if (!textToSpeechProvider.loading) {
-                    textToSpeechProvider.stop().then((_) {
-                      nextLesson();
-                    });
+                loading: textToSpeechProvider.loading,
+                callBack: () async {
+                  if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
+                    await textToSpeechProvider.pause();
+                  } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
+                    await textToSpeechProvider.resume();
+                  } else {
+                    await textToSpeechProvider.playFullAudio(
+                        result: newData, lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
                   }
                 },
               ),
-            ),
-            Spacer(flex: 1),
-          ],
+              SizedBox(height: getVerticalSize(15, context)),
+              CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
+              SizedBox(height: getVerticalSize(15, context)),
+              if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('note'))
+                Padding(
+                  padding: EdgeInsets.only(bottom: 10),
+                  child: CustomText(text: widget.snapshot['note'], size: fontSizeSmall, weight: FontWeight.w500),
+                ),
+              Expanded(
+                flex: 10,
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.all(0),
+                    itemCount: newData?.length,
+                    itemBuilder: (ctx, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              text: '${index + idx + 1}.',
+                              size: getFontSize(16, context),
+                            ),
+                            SizedBox(
+                              width: getHorizontalSize(8, context),
+                            ),
+                            Expanded(
+                              child: CustomText(
+                                text: newData![index],
+                                size: getFontSize(16, context),
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    }),
+              ),
+              Spacer(flex: 1),
+              Center(
+                child: CustomButton(
+                  width: getHorizontalSize(250, context),
+                  text: 'Repeat audio',
+                  textColor: AppColors.primaryColor,
+                  border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                  onpressed: () {
+                    textToSpeechProvider.repeatFullAudio(filename: filename);
+                  },
+                ),
+              ),
+              SizedBox(height: getVerticalSize(15, context)),
+              Opacity(
+                opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
+                child: CustomButton(
+                  text: 'Ok, got it',
+                  color: AppColors.buttonColor,
+                  onpressed: () {
+                    if (!textToSpeechProvider.loading) {
+                      textToSpeechProvider.stop().then((_) {
+                        nextLesson();
+                      });
+                    }
+                  },
+                ),
+              ),
+              Spacer(flex: 1),
+            ],
+          ),
         ),
       ),
     );

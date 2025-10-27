@@ -1,8 +1,10 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/screens/all_lessons_completed.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/exercises/choice_type.dart';
 import 'package:french_app/screens/exercises/fill_in_the_gap_type.dart';
@@ -10,6 +12,7 @@ import 'package:french_app/screens/exercises/input_text_type.dart';
 import 'package:french_app/screens/exercises/matching_type.dart';
 import 'package:french_app/screens/exercises/puzzle_type.dart';
 import 'package:french_app/screens/exercises/reading_type.dart';
+import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/screens/lessons/alpha_numeric_type.dart';
 import 'package:french_app/screens/lessons/conversation_type.dart';
 import 'package:french_app/screens/lessons/image_type.dart';
@@ -28,6 +31,7 @@ class DecisionScreen extends StatefulWidget {
   final int subLessonIndex;
   final int? exerciseIndex;
   final double? exerciseScore;
+  final List<double>? exerciseScoreTrackingList;
   final LessonData? lessonData;
   final int previousPageIndex;
 
@@ -36,6 +40,7 @@ class DecisionScreen extends StatefulWidget {
     required this.subLessonIndex,
     this.exerciseIndex,
     this.exerciseScore,
+    this.exerciseScoreTrackingList,
     this.lessonData,
     required this.previousPageIndex,
     super.key,
@@ -54,11 +59,21 @@ class _DecisionScreenState extends State<DecisionScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    log('exercise score  ${widget.exerciseScore?.toString() ?? '0'}');
     if (widget.lessonData == null) {
       startLessonFlow(widget.lessonIndex);
     } else {
       lessonData = widget.lessonData!;
     }
+    setContinueLessonProgress();
+    Provider.of<AppProvider>(context, listen: false).continueSubLessonIndex = widget.subLessonIndex;
+    Provider.of<AppProvider>(context, listen: false).continueExerciseIndex = widget.exerciseIndex;
+  }
+
+  setContinueLessonProgress() async {
+    await LocalStorage().setString('continueLessonIndex', '${widget.lessonIndex}');
+    await LocalStorage().setString('continueSubLessonIndex', '${widget.subLessonIndex}');
+    await LocalStorage().setString('continueExerciseIndex', '${widget.exerciseIndex}');
   }
 
   void startLessonFlow(int lessonIndex) async {
@@ -78,10 +93,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
     );
     loading = false;
     setState(() {});
-
-    await LocalStorage().setString('continueLessonIndex', '$lessonIndex');
     Provider.of<AppProvider>(context, listen: false).continueLessonData = lessonData;
-
     //Initialize or resets the lesson progress in remote database only
     if (DatabaseService.currentUser != null) {
       LessonProgress lessonProgress = LessonProgress(
@@ -104,6 +116,9 @@ class _DecisionScreenState extends State<DecisionScreen> {
         data = lessonData.subLessons[widget.subLessonIndex];
       } else if ((widget.exerciseIndex ?? 0) < lessonData.exercises.length) {
         data = lessonData.exercises[widget.exerciseIndex ?? 0];
+      } else if (lessonData.lessonIndex == 26 || lessonData.lessonIndex == 30) {
+        //no exercises//show last sublesson
+        data = lessonData.subLessons[widget.subLessonIndex - 1];
       } /*else if (widget.subLessonIndex == lessonData.subLessons.length && widget.exerciseIndex == lessonData.exercises.length) {
         //Lesson has already been completed so we start lesson again
         data = lessonData.subLessons[0];
@@ -136,7 +151,8 @@ class _DecisionScreenState extends State<DecisionScreen> {
                                                     goToBack: goToBack,
                                                     lessonData: lessonData,
                                                     exerciseIndex: widget.exerciseIndex!,
-                                                    previousExerciseScore: widget.exerciseScore ?? 0,
+                                                    exerciseScore: widget.exerciseScore ?? 0,
+                                                    exerciseScoreTrackingList: widget.exerciseScoreTrackingList ?? [],
                                                   )
                                                 : data!['type'].toString().toLowerCase().contains('fill-in-the-gap')
                                                     ? FillInTheGapType(
@@ -145,7 +161,8 @@ class _DecisionScreenState extends State<DecisionScreen> {
                                                         goToBack: goToBack,
                                                         lessonData: lessonData,
                                                         exerciseIndex: widget.exerciseIndex!,
-                                                        previousExerciseScore: widget.exerciseScore ?? 0,
+                                                        exerciseScore: widget.exerciseScore ?? 0,
+                                                        exerciseScoreTrackingList: widget.exerciseScoreTrackingList ?? [],
                                                       )
                                                     : data!['type'] == 'reading'
                                                         ? ReadingType(
@@ -154,7 +171,8 @@ class _DecisionScreenState extends State<DecisionScreen> {
                                                             goToBack: goToBack,
                                                             lessonData: lessonData,
                                                             exerciseIndex: widget.exerciseIndex!,
-                                                            previousExerciseScore: widget.exerciseScore ?? 0,
+                                                            exerciseScore: widget.exerciseScore ?? 0,
+                                                            exerciseScoreTrackingList: widget.exerciseScoreTrackingList ?? [],
                                                           )
                                                         : data!['type'].toString().toLowerCase().contains('choice')
                                                             ? ChoiceType(
@@ -163,7 +181,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
                                                                 goToBack: goToBack,
                                                                 lessonData: lessonData,
                                                                 exerciseIndex: widget.exerciseIndex!,
-                                                                previousExerciseScore: widget.exerciseScore ?? 0,
+                                                                exerciseScore: widget.exerciseScore ?? 0,
                                                               )
                                                             : data!['type'] == 'puzzle'
                                                                 ? PuzzleType(
@@ -172,7 +190,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
                                                                     goToBack: goToBack,
                                                                     lessonData: lessonData,
                                                                     exerciseIndex: widget.exerciseIndex!,
-                                                                    previousExerciseScore: widget.exerciseScore ?? 0,
+                                                                    exerciseScore: widget.exerciseScore ?? 0,
                                                                   )
                                                                 : data!['type'] == 'matching'
                                                                     ? MatchingType(
@@ -181,7 +199,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
                                                                         goToBack: goToBack,
                                                                         lessonData: lessonData,
                                                                         exerciseIndex: widget.exerciseIndex!,
-                                                                        previousExerciseScore: widget.exerciseScore ?? 0,
+                                                                        exerciseScore: widget.exerciseScore ?? 0,
                                                                       )
                                                                     : Scaffold(
                                                                         body: Center(
@@ -238,41 +256,16 @@ class _DecisionScreenState extends State<DecisionScreen> {
           lastUpdateTime: DateTime.now(),
         );
       } else {
-        //Lesson doesnt have exercise, so mark lesson completed and go to next lesson
-        //e.g lesson26
-        DatabaseService.updateLessonProgress(
-          context: context,
-          lessonIndex: lessonData.lessonIndex.toString(),
-          lessonData: lessonData,
-          currentSubLessonIndex: lessonData.subLessons.length - 1,
-          currentExerciseIndex: null,
-          totalLessonIndex: lessonData.subLessons.length - 1,
-          score: 0,
-          lastUpdateTime: DateTime.now(),
-        );
+        //Lesson doesn't have exercise, so go to lesson completed page
         if (lessonData.lessonIndex + 1 <= 30) {
-          changeScreenRemoveUntill(
-              buildContext,
-              BottomNavbar(
-                pageIndex: widget.previousPageIndex,
-                newpage: DecisionScreen(
-                    lessonIndex: widget.lessonIndex + 1,
-                    lessonData: null, //important
-                    subLessonIndex: 0,
-                    previousPageIndex: widget.previousPageIndex),
-              ));
+          changeScreen(context, BottomNavbar(pageIndex: 1, newpage: LessonsCompleted(totalScore: 1, lessonData: lessonData)));
         } else {
-          /* Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CompletionScreen(),
-          ),
-        );*/
+          changeScreen(context, BottomNavbar(pageIndex: 1, newpage: AllLessonsCompleted(totalScore: 1, lessonData: lessonData)));
         }
       }
     } else if (widget.exerciseIndex! + 1 < lessonData.exercises.length) {
       // Go to next exercise // Single activity screen
-      changeScreenReplacement(
+      changeScreen(
           buildContext,
           BottomNavbar(
               pageIndex: widget.previousPageIndex,
@@ -282,6 +275,11 @@ class _DecisionScreenState extends State<DecisionScreen> {
                   subLessonIndex: widget.subLessonIndex,
                   exerciseIndex: widget.exerciseIndex! + 1,
                   exerciseScore: (widget.exerciseScore ?? 0) + (score ?? 0),
+                  exerciseScoreTrackingList: () {
+                    List<double> exerciseScoreTrackingList = widget.exerciseScoreTrackingList ?? [];
+                    exerciseScoreTrackingList.add(score ?? 0);
+                    return exerciseScoreTrackingList;
+                  }(),
                   previousPageIndex: widget.previousPageIndex)));
       DatabaseService.updateLessonProgress(
         context: buildContext,
@@ -290,7 +288,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
         currentSubLessonIndex: widget.subLessonIndex,
         currentExerciseIndex: widget.exerciseIndex! + 1,
         totalLessonIndex: lessonData.subLessons.length + lessonData.exercises.length,
-        score: (widget.exerciseScore ?? 0) + (score ?? 0), //widget.exerciseScore will be null for first exercise screen
+        score: (widget.exerciseScore ?? 0) + (score ?? 0),
         lastUpdateTime: DateTime.now(),
       );
     } else {
@@ -307,12 +305,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
                   previousPageIndex: widget.previousPageIndex),
             ));
       } else {
-        /* Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CompletionScreen(),
-          ),
-        );*/
+        changeScreen(context, BottomNavbar(pageIndex: 1, newpage: AllLessonsCompleted(totalScore: 1, lessonData: lessonData)));
       }
     }
   }
@@ -321,21 +314,27 @@ class _DecisionScreenState extends State<DecisionScreen> {
   void goToBack({required BuildContext buildContext}) async {
     // Case 1: Inside exercises
     if (widget.exerciseIndex != null && widget.exerciseIndex! > 0) {
-      /* // Go to previous exercise
-    changeScreenReplacement(
-      buildContext,
-      BottomNavbar(
-        pageIndex: widget.previousPageIndex,
-        newpage: DecisionScreen(
-          lessonIndex: widget.lessonIndex,
-          lessonData: lessonData,
-          subLessonIndex: widget.subLessonIndex,
-          exerciseIndex: widget.exerciseIndex! - 1,
-          exerciseScore: widget.exerciseScore ?? 0,
-          previousPageIndex: widget.previousPageIndex,
+      // Go to previous exercise
+      changeScreenReplacement(
+        buildContext,
+        BottomNavbar(
+          pageIndex: widget.previousPageIndex,
+          newpage: DecisionScreen(
+            lessonIndex: widget.lessonIndex,
+            lessonData: lessonData,
+            subLessonIndex: widget.subLessonIndex,
+            exerciseIndex: widget.exerciseIndex! - 1,
+            exerciseScore: (widget.exerciseScore ?? 0) - (widget.exerciseScoreTrackingList?.last ?? 0),
+            exerciseScoreTrackingList: () {
+              //Used to prevent adding up exercise score to exercise screen you completed before
+              List<double> exerciseScoreList = widget.exerciseScoreTrackingList ?? [];
+              exerciseScoreList.removeLast();
+              return exerciseScoreList;
+            }(),
+            previousPageIndex: widget.previousPageIndex,
+          ),
         ),
-      ),
-    );*/
+      );
     } else if (widget.exerciseIndex != null && widget.exerciseIndex == 0) {
       // If on first exercise, go back to last sub-lesson
       changeScreenReplacement(
@@ -353,7 +352,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
     }
     // Case 2: Inside sub-lessons
     else if (widget.subLessonIndex > 0) {
-      changeScreen(
+      changeScreenReplacement(
         buildContext,
         BottomNavbar(
           pageIndex: widget.previousPageIndex,

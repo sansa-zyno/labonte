@@ -6,10 +6,13 @@ import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/modals/alert.dart';
+import 'package:french_app/models/entitlement.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/auth/forgot_password.dart';
 import 'package:french_app/screens/auth/sign_up.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/auth.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -167,6 +170,7 @@ class _LoginState extends State<Login> {
   }
 
   signIn() async {
+    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
     try {
       isloading = true;
       setState(() {});
@@ -177,7 +181,11 @@ class _LoginState extends State<Login> {
         await appProvider.getCurrentUserModel();
         await appProvider.getContinueLessonData();
         if (appProvider.userModel != null) {
-          changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
+          if (entitlementProvider.entitlement == Entitlement.pro) {
+            changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
+          } else {
+            changeScreenRemoveUntill(context, Subscription(userModel: appProvider.userModel!));
+          }
         } else {
           showDialog(
             context: context,

@@ -4,10 +4,10 @@ import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
-import 'package:french_app/models/dummy_data.dart';
 import 'package:french_app/models/user.dart';
 import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
+import 'package:french_app/services/purchase_api.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:french_app/widgets/paywall_widget.dart';
@@ -30,9 +30,16 @@ class _SubscriptionState extends State<Subscription> {
 
   @override
   Widget build(BuildContext context) {
+    bool canGoback = Navigator.canPop(context);
     return AnnotatedRegion(
-      value: const SystemUiOverlayStyle(statusBarColor: AppColors.whiteColor1),
+      value: const SystemUiOverlayStyle(statusBarColor: AppColors.whiteColor1, systemNavigationBarColor: AppColors.whiteColor1),
       child: Scaffold(
+        /*appBar: AppBar(
+          leading: const SizedBox(),
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          toolbarHeight: 0,
+        ),*/
         body: Column(
           children: [
             SizedBox(height: getVerticalSize(70, context)),
@@ -51,7 +58,9 @@ class _SubscriptionState extends State<Subscription> {
                   left: 15,
                   child: InkWell(
                     onTap: () {
-                      Navigator.pop(context);
+                      if (canGoback) {
+                        Navigator.pop(context);
+                      }
                     },
                     child: const Align(
                       alignment: Alignment.centerLeft,
@@ -135,8 +144,8 @@ class _SubscriptionState extends State<Subscription> {
                     text: 'Start your 3-days free trial',
                     color: AppColors.buttonColor,
                     onpressed: () async {
-                      // fetchOffers(context);
-                      List<Package> packagess = DummyData.packagess;
+                      fetchOffers(context);
+                      /*List<Package> packagess = DummyData.packagess;
                       showModalBottomSheet(
                           context: context,
                           isDismissible: false,
@@ -164,7 +173,7 @@ class _SubscriptionState extends State<Subscription> {
                                 if (context.mounted) {
                                   changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
                                 }
-                              }));
+                              }));*/
                     },
                   ),
                 ],
@@ -176,22 +185,38 @@ class _SubscriptionState extends State<Subscription> {
     );
   }
 
-  /*Future fetchOffers(context) async {
+  Future fetchOffers(context) async {
     final offerings = await PurchaseApi.fetchOffers(all: false);
     if (offerings.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No Plans Found')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No Plans Found')));
     } else {
       final packages = offerings.map((offer) => offer.availablePackages).expand((pair) => pair).toList();
       showModalBottomSheet(
           context: context,
-          builder: (context) => PaywallWidget(
-              title: "Upgrade your Plan",
-              description: "Upgrade to a new plan to enjoy more benefits",
-              packages: packages,
+          builder: (bottomSheetContext) => PaywallWidget(
+              title: "Get full access",
+              description: "",
+              packages: packages.reversed.toList(),
               onClickedPackage: (package) async {
-                await PurchaseApi.purchasePackage(package);
-                Navigator.pop(context);
+                bool result = await PurchaseApi.purchasePackage(package);
+                // Close bottom sheet first
+                Navigator.pop(bottomSheetContext);
+
+                // Delay a frame to let bottom sheet fully dismiss
+                await Future.delayed(Duration(milliseconds: 100));
+
+                if (result) {
+                  // Access parent context (not bottomSheetContext) safely
+                  final appProvider = Provider.of<AppProvider>(context, listen: false);
+
+                  await appProvider.getCurrentUserModel();
+                  await appProvider.getContinueLessonData();
+
+                  if (context.mounted) {
+                    changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
+                  }
+                }
               }));
     }
-  }*/
+  }
 }

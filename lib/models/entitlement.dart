@@ -1,1 +1,1 @@
-enum Entitlement {free, allcourses}
+enum Entitlement { free, pro }

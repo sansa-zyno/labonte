@@ -39,15 +39,11 @@ class AppProvider extends ChangeNotifier {
         subLessons.sort((a, b) => int.parse(a.id).compareTo(int.parse(b.id)));
         final exercises = (await firestore.collection(lessonName).doc('exercises').collection('exercises').get()).docs;
         exercises.sort((a, b) => int.parse(a.id).compareTo(int.parse(b.id)));
-        if (subLessons.isNotEmpty) {
-          continueLessonData = LessonData(
-            lessonIndex: int.parse(continueLessonIndex),
-            subLessons: subLessons,
-            exercises: exercises,
-          );
-        } else {
-          continueLessonData = null;
-        }
+        continueLessonData = LessonData(
+          lessonIndex: int.parse(continueLessonIndex),
+          subLessons: subLessons,
+          exercises: exercises,
+        );
       }
       notifyListeners();
     } catch (e) {

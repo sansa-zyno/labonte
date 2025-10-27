@@ -7,9 +7,12 @@ import 'dart:async';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/modals/alert.dart';
+import 'package:french_app/models/entitlement.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/getting_started.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,20 +22,26 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late AppProvider appProvider;
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  late EntitlementProvider entitlementProvider;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   void initState() {
     super.initState();
     appProvider = Provider.of<AppProvider>(context, listen: false);
+    entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
     // Delay for 2 seconds before navigating to the main screen
-    Timer(Duration(seconds: 2), () async {
+    Timer(const Duration(seconds: 2), () async {
       if (_auth.currentUser == null) {
-        changeScreenReplacement(context, GettingStarted());
+        changeScreenReplacement(context, const GettingStarted());
       } else {
         await appProvider.getCurrentUserModel();
         await appProvider.getContinueLessonData();
         if (appProvider.userModel != null) {
-          changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
+          if (entitlementProvider.entitlement == Entitlement.pro) {
+            changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
+          } else {
+            changeScreenReplacement(context, Subscription(userModel: appProvider.userModel!));
+          }
         } else {
           showDialog(
             context: context,

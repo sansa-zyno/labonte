@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
-import 'package:french_app/models/dummy_data.dart';
+//import 'package:french_app/models/dummy_data.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 //import 'package:purchases_flutter/object_wrappers.dart';
 
 class PaywallWidget extends StatefulWidget {
@@ -130,7 +131,7 @@ class _PaywallWidgetState extends State<PaywallWidget> {
           decoration: BoxDecoration(
               border: Border.all(
                 color: selectedIdx == index ? Color(0xFFEEC45C) : Color(0xFF100C0C),
-                width: 1.0,
+                width: selectedIdx == index ? 1.5 : 1.0,
               ),
               borderRadius: BorderRadius.circular(12)),
           child: Column(
@@ -138,36 +139,32 @@ class _PaywallWidgetState extends State<PaywallWidget> {
             children: [
               CustomText(
                 text: product.title,
-                weight: FontWeight.w700,
+                weight: FontWeight.w500,
               ),
-              SizedBox(
-                height: 8,
-              ),
+              SizedBox(height: 8),
               Row(
                 children: [
+                  product.introductoryPrice != null
+                      ? CustomText(
+                          text: product.introductoryPrice!.priceString,
+                          size: getFontSize(fontSizeSmall, context),
+                          color: AppColors.blackColor2.withOpacity(0.6),
+                          textDecoration: TextDecoration.lineThrough,
+                        )
+                      : SizedBox.shrink(),
+                  product.introductoryPrice != null ? SizedBox(width: 5) : SizedBox.shrink(),
                   CustomText(
                     text: product.priceString,
-                    size: getFontSize(fontSizeSmall, context),
-                    color: AppColors.blackColor2.withOpacity(0.6),
-                    textDecoration: TextDecoration.lineThrough,
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  CustomText(
-                    text: product.offerPrice,
                     size: getFontSize(fontSizeSmall, context),
                     weight: FontWeight.w700,
                   ),
                 ],
               ),
-              SizedBox(
-                height: 3,
-              ),
+              SizedBox(height: 8),
               CustomText(
                 text: product.description,
                 size: getFontSize(fontSizeSmall, context),
-                weight: FontWeight.w600,
+                //weight: FontWeight.w600,
               ),
             ],
           )),

@@ -21,14 +21,16 @@ class FillInTheGapType extends StatefulWidget {
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
-  final double previousExerciseScore;
+  final double exerciseScore;
+  final List<double>? exerciseScoreTrackingList;
   const FillInTheGapType({
     required this.snapshot,
     required this.goToNext,
     required this.goToBack,
     required this.lessonData,
     required this.exerciseIndex,
-    required this.previousExerciseScore,
+    required this.exerciseScore,
+    required this.exerciseScoreTrackingList,
     super.key,
   });
 
@@ -147,18 +149,20 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
+    //bool canGoback = Navigator.canPop(context);
     return PopScope(
       canPop: false,
       onPopInvoked: (x) async {
-        AppConstants.showExitExcerciseWarning(context: context, goToBack: widget.goToBack);
+        // AppConstants.showExitExcerciseWarning(context: context, goToBack: widget.goToBack);
+        widget.goToBack(buildContext: context);
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: SizedBox(),
+        /* appBar: AppBar(
+          leading: const SizedBox(),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           toolbarHeight: 0,
-        ),
+        ),*/
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Column(
@@ -208,6 +212,13 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
               ),
               SizedBox(height: getVerticalSize(15, context)),
               CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
+              SizedBox(height: getVerticalSize(8, context)),
+              CustomText(
+                text: 'Note: You will need to long-press the letters in your keyboard to get the French accent\'s characters.',
+                size: fontSizeSmall,
+                color: AppColors.primaryColor,
+                weight: FontWeight.bold,
+              ),
               SizedBox(height: getVerticalSize(15, context)),
               widget.snapshot['type'].toString().contains('word-all')
                   ? Expanded(
@@ -259,7 +270,6 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
                           String text = questions[index];
                           List<InlineSpan> spans = [];
                           int controllerIndex = 0;
-
                           text.splitMapJoin(
                             RegExp(r'_+'),
                             onMatch: (m) {
@@ -268,15 +278,19 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
                                 child: SizedBox(
                                   height: 20,
                                   width: (widget.snapshot['type'].toString().contains('sentence')
-                                      ? ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
+                                      ? answers[index].isEmpty
+                                          ? 100
+                                          : ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
                                       : 25.0),
                                   child: TextField(
                                       controller: controllers[index][controllerIndex],
                                       maxLength: widget.snapshot['type'].toString().contains('sentence')
-                                          ? answers[index].split(',')[controllerIndex].length + 2
+                                          ? answers[index].isEmpty
+                                              ? null
+                                              : answers[index].split(',')[controllerIndex].length + 2
                                           : 1,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 14),
+                                      textAlign: widget.snapshot['type'].toString().contains('sentence') ? TextAlign.start : TextAlign.center,
+                                      style: const TextStyle(fontSize: 14),
                                       decoration: _textFieldDecoration2),
                                 ),
                               ));
@@ -284,7 +298,7 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
                               return '';
                             },
                             onNonMatch: (text) {
-                              spans.add(TextSpan(text: text, style: TextStyle(color: Colors.black)));
+                              spans.add(TextSpan(text: text, style: const TextStyle(color: Colors.black)));
                               return '';
                             },
                           );
@@ -329,7 +343,8 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
                                 goToNext: widget.goToNext,
                                 lessonData: widget.lessonData,
                                 exerciseIndex: widget.exerciseIndex,
-                                previousExerciseScore: widget.previousExerciseScore,
+                                exerciseScore: widget.exerciseScore,
+                                exerciseScoreTrackingList: widget.exerciseScoreTrackingList,
                               ),
                             ));
                       });

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:french_app/helpers/tts_helper.dart';
 import 'package:french_app/services/tts_service.dart';
+import 'package:html/parser.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -16,22 +17,30 @@ class TextToSpeechProvider extends ChangeNotifier {
   AudioPlayerState playerState = AudioPlayerState.stopped;
   bool loading = false;
 
-  TextToSpeechProvider() {}
+  TextToSpeechProvider();
 
-  Future<void> playFullAudio({required dynamic result, required DocumentSnapshot snapshot, required String filename}) async {
+  Future<void> playFullAudio({
+    required dynamic result,
+    required int lessonIndex,
+    required DocumentSnapshot snapshot,
+    required String filename,
+  }) async {
     try {
       String text = '';
       if (result is String) {
+        final matchI = RegExp(r'\bI\b', caseSensitive: false);
         //html type lesson
-        text = result.replaceAll('&nbsp;', '');
+        text = parse(result).body?.text ?? '';
+        //text = result.replaceAll('&nbsp;', '');
+        text = text.replaceAll(matchI, 'aï');
       } else if (result is Map<String, dynamic>) {
         text = TextToSpeechService.buildFullTextFromMap(result);
       } else {
-        text = TextToSpeechService.buildFullTextFromArray(arrayResult: result, snapshot: snapshot);
+        text = TextToSpeechService.buildFullTextFromArray(arrayResult: result, lessonIndex: lessonIndex, snapshot: snapshot);
       }
       text = TextToSpeechHelper.preprocessForFrenchTTS(text);
-      //final appDocDir = await getApplicationDocumentsDirectory();
-      final appDocDir = await getTemporaryDirectory();
+      final appDocDir = await getApplicationDocumentsDirectory();
+      //final appDocDir = await getTemporaryDirectory();
       loading = true;
       notifyListeners();
       //log(filename);
@@ -65,10 +74,12 @@ class TextToSpeechProvider extends ChangeNotifier {
   }
 
   Future<void> playPronunciation(String text) async {
-    final filename = TextToSpeechHelper.textToFileName(text);
+    text = TextToSpeechHelper.preprocessForFrenchTTS(text);
+    //.replaceAll(RegExp(r'\b_+\b'), 'dash') used to prevent tts from speaking underscore in lesson10Exercise4
+    final filename = TextToSpeechHelper.textToFileName(text.replaceAll(RegExp(r'\b_+\b'), 'dash'));
     //log(filename);
-    //final appDocDir = await getApplicationDocumentsDirectory();
-    final appDocDir = await getTemporaryDirectory();
+    final appDocDir = await getApplicationDocumentsDirectory();
+    //final appDocDir = await getTemporaryDirectory();
     loading = true;
     notifyListeners();
     final file = File('${appDocDir.path}/$filename.mp3');
@@ -83,7 +94,7 @@ class TextToSpeechProvider extends ChangeNotifier {
       playerState = AudioPlayerState.stopped;
       notifyListeners();
     } else {
-      final audioBytes = await TextToSpeechService.synthesizeSpeech(text);
+      final audioBytes = await TextToSpeechService.synthesizeSpeech(text.replaceAll(RegExp(r'\b_+\b'), 'dash'));
       await file.writeAsBytes(audioBytes);
       loading = false;
       playerState = AudioPlayerState.playing;
@@ -96,8 +107,8 @@ class TextToSpeechProvider extends ChangeNotifier {
   }
 
   Future<void> repeatFullAudio({required String filename}) async {
-    //final appDocDir = await getApplicationDocumentsDirectory();
-    final appDocDir = await getTemporaryDirectory();
+    final appDocDir = await getApplicationDocumentsDirectory();
+    //final appDocDir = await getTemporaryDirectory();
     final filePath = '${appDocDir.path}/$filename.mp3';
     final file = File(filePath);
     if (await file.exists()) {

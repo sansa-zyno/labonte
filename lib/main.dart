@@ -10,7 +10,6 @@ import 'package:french_app/provider/stt_provider.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/splash.dart';
-import 'package:french_app/services/local_storage.dart';
 import 'package:french_app/services/purchase_api.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -18,13 +17,12 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env"); // Load environment variables
-  //await PurchaseApi.init();
+  await PurchaseApi.init();
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
     log(e.toString());
   }
-
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(const MyApp());
 }
@@ -52,9 +50,7 @@ class MyApp extends StatelessWidget {
             bottomSheetTheme: const BottomSheetThemeData(
               backgroundColor: AppColors.whiteColor1,
             ),
-            dialogTheme: const DialogTheme(
-              backgroundColor: AppColors.whiteColor1,
-            )),
+            dialogTheme: const DialogTheme(backgroundColor: AppColors.whiteColor1)),
         home: SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),

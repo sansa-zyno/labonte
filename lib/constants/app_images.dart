@@ -1,7 +1,7 @@
 class AppImages {
   static const image1 = 'assets/images/image1.png';
   static const image2 = 'assets/images/image2.png';
-  static const logo = 'assets/images/labonte-logo256.png';
+  static const logo = 'assets/images/logo-nobg.png';
   static const calendar = 'assets/images/calendar.png';
   static const success = 'assets/images/success.png';
   static const girl = 'assets/images/girl.png';
@@ -17,4 +17,5 @@ class AppImages {
   static const splashImage = 'assets/images/splash-img.png';
   static const male = 'assets/images/male.png';
   static const handUp = 'assets/images/hand_up.png';
+  static const starBig = 'assets/images/star-big-nobg.png';
 }

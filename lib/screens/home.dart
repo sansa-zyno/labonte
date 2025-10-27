@@ -16,6 +16,7 @@ import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -25,6 +26,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  DateTime now = DateTime.now();
   @override
   Widget build(BuildContext context) {
     AppProvider appProvider = Provider.of<AppProvider>(context);
@@ -42,13 +44,13 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      text: 'Bonjour, ${appProvider.userModel?.name?.split(' ')[0] ?? 'USER'}! Let\'s learn',
-                      size: getFontSize(18, context),
-                      weight: FontWeight.w600,
-                    ),
+                        text:
+                            '${now.hour < 12 ? 'Bonjour' : now.hour <= 16 ? 'Bon après-midi' : 'Bonsoir'}, ${appProvider.userModel?.name?.split(' ')[0] ?? 'USER'}! Let\'s learn',
+                        size: getFontSize(16, context),
+                        weight: FontWeight.w600),
                     InkWell(
                       onTap: () {
-                        changeScreen(context, BottomNavbar(pageIndex: 3, newpage: Profile()));
+                        changeScreen(context, BottomNavbar(pageIndex: 3, newpage: const Profile()));
                       },
                       child: Image.asset(
                         AppIcons.user,
@@ -103,11 +105,12 @@ class _HomeState extends State<Home> {
                                   BottomNavbar(
                                       pageIndex: 1,
                                       newpage: DecisionScreen(
-                                          lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
+                                          previousPageIndex: 1,
                                           lessonData: appProvider.continueLessonData,
+                                          lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
                                           subLessonIndex: appProvider.continueSubLessonIndex,
-                                          exerciseIndex: 0, //appProvider.continueExerciseIndex,
-                                          previousPageIndex: 1)));
+                                          exerciseIndex: 0 //appProvider.continueExerciseIndex,
+                                          )));
                             },
                           ))
                     ],
@@ -142,11 +145,12 @@ class _HomeState extends State<Home> {
                                                     BottomNavbar(
                                                         pageIndex: 1,
                                                         newpage: DecisionScreen(
-                                                            lessonIndex: int.parse(lessonIndex),
+                                                            previousPageIndex: 1,
                                                             lessonData: null, //important
+                                                            lessonIndex: int.parse(lessonIndex),
                                                             subLessonIndex: subLessonIndex,
-                                                            exerciseIndex: 0, //exerciseIndex,
-                                                            previousPageIndex: 1)));
+                                                            exerciseIndex: 0 //exerciseIndex,
+                                                            )));
                                               },
                                               child: Container(
                                                   width: 150,
@@ -180,7 +184,7 @@ class _HomeState extends State<Home> {
                               : AppConstants.emptyLessonProgress(context)
                           : Center(child: CircularProgressIndicator());
                     }),
-                SizedBox(height: getVerticalSize(20, context)),
+                SizedBox(height: getVerticalSize(15, context)),
                 CustomText(text: 'Practice with AI', weight: FontWeight.w600),
                 SizedBox(height: getVerticalSize(8, context)),
                 Card(
@@ -225,7 +229,89 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                SizedBox(height: getVerticalSize(20, context)),
+                SizedBox(height: getVerticalSize(15, context)),
+                CustomText(text: 'Book a Session', weight: FontWeight.w600),
+                SizedBox(height: getVerticalSize(8, context)),
+                Container(
+                  height: getVerticalSize(146, context),
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.red2.withOpacity(0.2), width: 1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: AppColors.lightGrey2,
+                            child: Image.asset(AppIcons.user2, height: getSize(24, context)),
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  text: 'Schedule a session with a tutor',
+                                  size: getFontSize(fontSizeSmall, context),
+                                  weight: FontWeight.w600,
+                                ),
+                                SizedBox(height: getVerticalSize(4, context)),
+                                Row(
+                                  children: [
+                                    Image.asset(AppIcons.timer, height: getSize(12, context)),
+                                    SizedBox(width: 3),
+                                    CustomText(
+                                      text: '30min - 2 hrs',
+                                      size: getFontSize(fontSizeSmall, context),
+                                      color: AppColors.blackColor2.withOpacity(0.8),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: getVerticalSize(6, context)),
+                                Container(
+                                  height: getVerticalSize(22, context),
+                                  width: getHorizontalSize(64, context),
+                                  padding: EdgeInsets.only(left: 6, right: 6),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.blackColor1.withOpacity(0.4)),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.person_3, size: 12),
+                                      SizedBox(width: getHorizontalSize(3, context)),
+                                      CustomText(
+                                        text: 'Private',
+                                        size: getFontSize(fontSizeExtraSmall, context),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: getVerticalSize(10, context)),
+                      CustomButton(
+                        height: getVerticalSize(38, context),
+                        width: double.infinity,
+                        text: 'Schedule Now',
+                        textSize: getFontSize(12, context),
+                        color: AppColors.buttonColor,
+                        onpressed: () {
+                          launchCalendryUrl('labontelanguages-info/new-meeting');
+                        },
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(height: getVerticalSize(15, context)),
                 CustomText(
                   text: 'Quick Review',
                   weight: FontWeight.w600,
@@ -250,11 +336,11 @@ class _HomeState extends State<Home> {
                                                 BottomNavbar(
                                                     pageIndex: 1,
                                                     newpage: DecisionScreen(
-                                                        lessonIndex: int.parse(snapshot.data![index].lessonId),
+                                                        previousPageIndex: 1,
                                                         lessonData: null, //important
+                                                        lessonIndex: int.parse(snapshot.data![index].lessonId),
                                                         subLessonIndex: 0,
-                                                        exerciseIndex: null,
-                                                        previousPageIndex: 1)));
+                                                        exerciseIndex: null)));
                                           },
                                           child: Container(
                                             width: 150,
@@ -289,7 +375,7 @@ class _HomeState extends State<Home> {
                             : Center(child: CircularProgressIndicator());
                       }),
                 ),
-                const SizedBox(height: 10)
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -297,147 +383,58 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+
+  Future<void> launchCalendryUrl(String address) async {
+    final url = 'https://www.calendly.com/$address';
+    await launchUrl(Uri.parse(url));
+  }
 }
-
-
-
-
-
-
-
-
-            /*Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.yellow, borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      height: getVerticalSize(50, context),
-                      child: Stack(
-                        alignment: Alignment.center,
+/*                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.yellow, borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        height: getVerticalSize(50, context),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              backgroundColor: Colors.transparent,
+                              color: AppColors.primaryColor,
+                              value: 0.8,
+                            ),
+                            Center(child: CustomText(text: '10'))
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: getHorizontalSize(8, context)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircularProgressIndicator(
-                            backgroundColor: Colors.transparent,
-                            color: AppColors.primaryColor,
-                            value: 0.8,
+                          CustomText(
+                            text: 'Daily Goal Remider',
+                            size: getFontSize(fontSizeSmall, context),
+                            weight: FontWeight.w600,
                           ),
-                          Center(child: CustomText(text: '10'))
+                          CustomText(
+                            text: 'You set 15 minutes/day',
+                            size: getFontSize(fontSizeExtraSmall, context),
+                            color: AppColors.blackColor1.withOpacity(0.8),
+                          )
                         ],
                       ),
-                    ),
-                    SizedBox(width: getHorizontalSize(8, context)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          text: 'Daily Goal Remider',
-                          size: getFontSize(fontSizeSmall, context),
-                          weight: FontWeight.w600,
-                        ),
-                        CustomText(
-                          text: 'You set 15 minutes/day',
-                          size: getFontSize(fontSizeExtraSmall, context),
-                          color: AppColors.blackColor1.withOpacity(0.8),
-                        )
-                      ],
-                    ),
-                    Spacer(),
-                    CustomButton(
-                      height: 28,
-                      color: AppColors.whiteColor1,
-                      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                      text: 'Edit goal',
-                      textSize: getFontSize(11, context),
-                      textColor: AppColors.primaryColor,
-                      border: Border.all(color: AppColors.primaryColor, width: 1.5),
-                    )
-                  ],
+                      Spacer(),
+                      CustomButton(
+                        height: 28,
+                        color: AppColors.whiteColor1,
+                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                        text: 'Edit goal',
+                        textSize: getFontSize(11, context),
+                        textColor: AppColors.primaryColor,
+                        border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: getVerticalSize(20, context)),*/
-
-
-/*
-            Expanded(
-              child: SingleChildScrollView(
-                child: SizedBox(
-                  height: getVerticalSize(180, context),
-                  child: ListView.builder(
-                      itemCount: 10,
-                      shrinkWrap: true,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (ctx, index) => Container(
-                            height: double.infinity,
-                            width: 300,
-                            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 12),
-                            margin: EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.red2.withOpacity(0.2), width: 1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CircleAvatar(
-                                      child: Image.asset(AppImages.male),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Expanded(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          CustomText(
-                                            text: 'Talk about French Alphabets',
-                                            size: getFontSize(fontSizeSmall, context),
-                                            weight: FontWeight.w600,
-                                          ),
-                                          SizedBox(height: getVerticalSize(3, context)),
-                                          CustomText(
-                                            text: '30 min, 1 hour, 2 hours',
-                                            size: getFontSize(fontSizeSmall, context),
-                                            color: AppColors.blackColor2.withOpacity(0.8),
-                                          ),
-                                          SizedBox(height: getVerticalSize(5, context)),
-                                          Container(
-                                            height: getVerticalSize(22, context),
-                                            width: getHorizontalSize(62, context),
-                                            padding: EdgeInsets.all(3),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(color: AppColors.blackColor1.withOpacity(0.4)),
-                                              borderRadius: BorderRadius.circular(24),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.person_3, size: 15),
-                                                SizedBox(width: getHorizontalSize(3, context)),
-                                                CustomText(
-                                                  text: 'Private',
-                                                  size: getFontSize(fontSizeExtraSmall, context),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Spacer()
-                                  ],
-                                ),
-                                SizedBox(height: getVerticalSize(8, context)),
-                                CustomButton(
-                                  height: getVerticalSize(38, context),
-                                  width: double.infinity,
-                                  text: 'Schedule Now',
-                                  color: AppColors.buttonColor,
-                                )
-                              ],
-                            ),
-                          )),
-                ),
-              ),
-            )
-*/
+                SizedBox(height: getVerticalSize(20, context))*/

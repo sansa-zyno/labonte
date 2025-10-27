@@ -2,7 +2,6 @@ class TextToSpeechHelper {
   static String preprocessForFrenchTTS(String text) {
     final replacements = {
       // English words → French phonetic equivalents
-      'I': 'aï',
       'Nice': 'Naïs', // to avoid French "Niss"
       'has': 'haze',
       'Here': 'hïir',
@@ -53,7 +52,17 @@ class TextToSpeechHelper {
       'theirs': 'dïazz',
       'point': 'poynts',
       'points': 'poynts',
-      'Real': 'rïïle'
+      'Real': 'rïïle',
+      'tires': 'tayeurz',
+      'implies': 'him-plaïz',
+      'briefly': 'brief-lïï',
+      'spoiled': 'spoild',
+      'mind': 'maïnde',
+      'ache': 'eik',
+      'fare': 'fair',
+      'Striped': 'straaipd',
+      'item': 'aï-tem',
+      'items': 'aï-temss'
     };
 
     // Replace whole words only
@@ -69,6 +78,7 @@ class TextToSpeechHelper {
         return value;
       });
     });
+    //case sensitive
     text = text.replaceAll('Break', 'Brékkk');
     return text;
   }

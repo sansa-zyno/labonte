@@ -99,10 +99,10 @@ class _PracticeiWithAIState extends State<PracticeiWithAI> {
                         children: [
                           CustomText(
                             text: 'Type in French',
-                            size: getFontSize(18, context),
-                            weight: FontWeight.bold,
+                            size: getFontSize(14, context),
+                            weight: FontWeight.w500,
                           ),
-                          SizedBox(height: getVerticalSize(10, context)),
+                          SizedBox(height: getVerticalSize(8, context)),
                           CustomTextField(
                             borderRadius: 8,
                             contentPadding: EdgeInsets.all(8),

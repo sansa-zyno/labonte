@@ -8,13 +8,13 @@ import 'package:flutter/services.dart' show rootBundle;
 class TextToSpeechService {
   static String buildFullTextFromMap(Map<String, dynamic> mapResult) {
     //alpha_numeric type lesson
-    final values = mapResult.entries.map((e) => e.value.toString()).toList();
+    final keys = mapResult.entries.map((e) => e.key.toString()).toList();
     final buffer = StringBuffer();
     buffer.writeln('<speak>');
     buffer.writeln('<prosody rate="slow" pitch="+2st">');
-    for (int i = 0; i < values.length; i++) {
-      buffer.write(values[i]);
-      if (i != values.length - 1) {
+    for (int i = 0; i < keys.length; i++) {
+      buffer.write(keys[i]);
+      if (i != keys.length - 1) {
         buffer.write('<break time="600ms"/> ');
       }
     }
@@ -23,7 +23,11 @@ class TextToSpeechService {
     return buffer.toString();
   }
 
-  static String buildFullTextFromArray({required List arrayResult, required DocumentSnapshot snapshot}) {
+  static String buildFullTextFromArray({
+    required List arrayResult,
+    required int lessonIndex,
+    required DocumentSnapshot snapshot,
+  }) {
     Map<String, dynamic> tableHeader = {};
     String type = snapshot['type'];
     final buffer = StringBuffer();
@@ -57,19 +61,26 @@ class TextToSpeechService {
       if (entry is String) {
         //list or tree type lesson
         frenchWord = entry;
+        if (lessonIndex == 1 && snapshot.id == '2') {
+          //Spelling of names
+          List<String> alphabets = frenchWord.split('');
+          frenchWord = '${alphabets.join('<break time="600ms"/>')} — ${alphabets.join('')}';
+        }
         //fix for lesson 7 english part issues
         List<String> parts = frenchWord.split('\u2013'); //dash(U+2013) not hyphen(U+002D)
-        //Pattern to match a bracket an evertthing inside it
-        RegExp bracketPattern = RegExp(r'\s*\([^)]*\)');
+        //Pattern to match a bracket an everything inside it
+        //RegExp bracketPattern = RegExp(r'\s*\([^)]*\)');
+        //Pattern to match a bracket that contains atleast a number and alphabeth
+        final bracketPattern = RegExp(r'\s*\((?=[^)]*\d)(?=[^)]*[A-Za-z])[^)]*\)');
         if (bracketPattern.hasMatch(frenchWord)) {
           //speak only french part
-          frenchWord = '${parts[0]}'.replaceAll(bracketPattern, '');
+          frenchWord = parts[0].replaceAll(bracketPattern, '');
         }
         // Pattern to match a date like "14/ 4/ 2016"
         RegExp datePattern = RegExp(r'\d{1,2}/\s*\d{1,2}/\s*\d{4}');
         if (datePattern.hasMatch(frenchWord)) {
           //speak only french part
-          frenchWord = '${parts[1]}';
+          frenchWord = parts[1];
         }
       } else if (entry is Map<String, dynamic>) {
         if (type.toLowerCase().contains('image')) {
@@ -79,13 +90,15 @@ class TextToSpeechService {
             }
             String key = entry.keys.last.toString();
             String value = entry.values.last.toString();
-            if (key.length == 1) {
+            /*if (key.length == 1) {
               key = key.replaceFirst('Y', 'wai').replaceFirst('Z', 'zed'); //fix for alphabeths screen
-            }
-            if (key != '*') {
+            }*/
+            if (key != '*' && key.length == 1) {
+              frenchWord = '$key<break time="600ms"/>$value';
+            } else if (key != '*') {
               frenchWord = '<lang xml:lang="en-US">$key</lang><break time="600ms"/>$value';
             } else {
-              frenchWord = '$value';
+              frenchWord = value;
             }
           } else if (type == 'image-no-container') {
             if (entry.entries.toList()[1].key == 'image') {
@@ -93,7 +106,7 @@ class TextToSpeechService {
             }
             frenchWord = '${entry.values.last.toString()}';
           } else {
-            //Pattern to match a bracket an evertthing inside it
+            //Pattern to match a bracket an everything inside it
             RegExp bracketPattern = RegExp(r'\s*\([^)]*\)');
             List<String> orderedKeys = List<String>.from(entry.keys);
             orderedKeys.remove('image');
@@ -153,7 +166,7 @@ class TextToSpeechService {
               orderedKeys = ['pho', 'ex', 'clc', 'phoSound']; //re-order
               if (tableHeader.values.toString() != entry.values.toString()) {
                 frenchWord =
-                    '<emphasis>${entry[orderedKeys[3]]}</emphasis><break time="1s"/>${tableHeader[orderedKeys[1]]}<break time="600ms"/>${entry[orderedKeys[1]]}<break time="1s"/><lang xml:lang="en-US">${tableHeader[orderedKeys[2]]}</lang><break time="600ms"/>${entry[orderedKeys[2]]}';
+                    '<emphasis>${entry[orderedKeys[3]]}</emphasis><break time="1s"/>${tableHeader[orderedKeys[1]]}<break time="600ms"/>${entry[orderedKeys[1]]}';
               }
             } else if (orderedKeys.contains('mas') && orderedKeys.contains('fem') && orderedKeys.contains('plu')) {
               orderedKeys = ['mas', 'fem', 'plu']; //re-order
@@ -221,7 +234,7 @@ class TextToSpeechService {
         } else if (type.toLowerCase() == 'sentence-meaning') {
           //Pattern to match date patterns like 1st,2nd,3rd,4th,2025
           RegExp datePattern2 = RegExp(r'\b\d+(st|nd|rd|th)?\b');
-          //Pattern to spaces
+          //Pattern to match spaces
           RegExp extraSpaces = RegExp(r'\s{2,}');
           String answer = entry['answer'].toString().replaceAll(datePattern2, '').replaceAll(extraSpaces, ' ').trim();
           frenchWord = '${entry['question']}<break time="1s"/>$answer';
@@ -233,6 +246,15 @@ class TextToSpeechService {
       } else {
         continue; // skip invalid entries
       }
+      if (type == 'image' && snapshot.id == '3') {
+        //Dont correct 'I' for 'I-Igname' screen.
+        final matchY = RegExp(r'\bY\b');
+        frenchWord = frenchWord.replaceAll(matchY, 'Igrek');
+      } else {
+        final matchI = RegExp(r'\bI\b', caseSensitive: false);
+        frenchWord = frenchWord.replaceAll(matchI, 'aï');
+      }
+
       buffer.write(frenchWord);
       if (i != arrayResult.length - 1) {
         buffer.write('.<break time="1s"/>');

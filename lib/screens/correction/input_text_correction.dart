@@ -8,7 +8,7 @@ import 'package:french_app/models/exercise_correction.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
-import 'package:french_app/screens/lessons_completed.dart';
+import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/services/gemini_service.dart';
 import 'package:french_app/widgets/cached_image.dart';
@@ -21,13 +21,15 @@ class InputTextCorrection extends StatefulWidget {
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final LessonData lessonData;
   final int exerciseIndex;
-  final double previousExerciseScore;
+  final double exerciseScore;
+  final List<double>? exerciseScoreTrackingList;
   const InputTextCorrection(
       {required this.correction,
       required this.goToNext,
       required this.lessonData,
       required this.exerciseIndex,
-      required this.previousExerciseScore,
+      required this.exerciseScore,
+      required this.exerciseScoreTrackingList,
       super.key});
 
   @override
@@ -81,18 +83,31 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
+    //bool canGoback = Navigator.canPop(context);
     return PopScope(
       canPop: false,
       onPopInvoked: (x) {
-        AppConstants.showExitExcerciseWarning(context: context);
+        //AppConstants.showExitExcerciseWarning(context: context);
+        changeScreenReplacement(
+            context,
+            BottomNavbar(
+                pageIndex: 1,
+                newpage: DecisionScreen(
+                    lessonIndex: widget.lessonData.lessonIndex,
+                    lessonData: widget.lessonData,
+                    subLessonIndex: widget.lessonData.subLessons.length,
+                    exerciseIndex: widget.exerciseIndex,
+                    exerciseScore: widget.exerciseScore,
+                    exerciseScoreTrackingList: widget.exerciseScoreTrackingList,
+                    previousPageIndex: 1)));
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: SizedBox(),
+        /*appBar: AppBar(
+          leading: const SizedBox(),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           toolbarHeight: 0,
-        ),
+        ),*/
         body: isLoading
             ? Center(child: CircularProgressIndicator())
             : Padding(
@@ -183,10 +198,10 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                   itemCount: data?.length ?? 0,
                                   shrinkWrap: true,
                                   itemBuilder: (ctx, index) {
-                                    if (data![index]['answer'].toString().isNotEmpty &&
-                                        answers[index].split(',').contains(controllers[index].text.toLowerCase())) {
+                                    if (isListOfInputTypeCorrect(controllers[index].text, answers[index])) {
                                       correctAnswerCount++;
                                     }
+                                    bool answerExistInDB = data![index]['answer'].toString().isNotEmpty;
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
@@ -234,26 +249,26 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                             ),
                                             SizedBox(width: getHorizontalSize(15, context)),
                                             //check or cancel mark at right hand side
-                                            if (data![index]['answer'].toString().isNotEmpty &&
-                                                answers[index].split(',').contains(controllers[index].text.toLowerCase()))
+                                            if (answerExistInDB && isListOfInputTypeCorrect(controllers[index].text, answers[index]))
                                               Icon(Icons.check, color: Colors.green)
-                                            else if (data![index]['answer'].toString().isNotEmpty &&
-                                                !answers[index].split(',').contains(controllers[index].text.toLowerCase()))
+                                            else if (answerExistInDB && !isListOfInputTypeCorrect(controllers[index].text, answers[index]))
                                               Icon(Icons.cancel, color: AppColors.red)
                                           ]),
                                         ),
                                         //if failed, show correct answer at the bottom
-                                        if (data![index]['answer'].toString().isNotEmpty &&
-                                            !answers[index].split(',').contains(controllers[index].text.toLowerCase()))
+                                        if (answerExistInDB && !isListOfInputTypeCorrect(controllers[index].text, answers[index]))
                                           Padding(
                                             padding: const EdgeInsets.only(top: 10),
                                             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                               CustomText(text: 'Correct answer is ', color: Colors.black.withOpacity(0.8), weight: FontWeight.w500),
                                               Expanded(
-                                                  child: CustomText(text: '${data![index]['answer']}', color: Colors.green, weight: FontWeight.w900))
+                                                  child: CustomText(
+                                                      text: data![index]['answer'].toString().split(',')[0],
+                                                      color: Colors.green,
+                                                      weight: FontWeight.w900))
                                             ]),
                                           ),
-                                        if (data![index]['answer'].toString().isEmpty)
+                                        if (!answerExistInDB && !isListOfInputTypeCorrect(controllers[index].text, answers[index]))
                                           Padding(
                                             padding: const EdgeInsets.only(top: 10),
                                             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -261,7 +276,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                               SizedBox(width: 15),
                                               Expanded(
                                                   child: CustomText(
-                                                text: answers.elementAtOrNull(index) != null ? '${answers[index]}' : '',
+                                                text: answers.elementAtOrNull(index) != null ? answers[index] : '',
                                                 color: Colors.green,
                                                 weight: FontWeight.w900,
                                               ))
@@ -291,7 +306,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                           SizedBox(width: 15),
                                           Expanded(
                                             child: CustomText(
-                                                text: answers.elementAtOrNull(0) != null ? '${answers[0]}' : '',
+                                                text: answers.elementAtOrNull(0) != null ? answers[0] : '',
                                                 color: Colors.green,
                                                 weight: FontWeight.w900),
                                           )
@@ -315,20 +330,8 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                             score = correctAnswerCount / (data?.length ?? 1);
                           } else {
                             if (answers.isNotEmpty) {
-                              /*The regex is used to replace any sequence of one or more characters that are 
-                              NOT letters (including accented ones), digits, underscores, apostrophes, or hyphens 
-                              with a space ' '*/
-                              List<String> userAnswer = oneTextViewController.text
-                                  .replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ')
-                                  .split(' ')
-                                  .where((w) => w.trim().isNotEmpty)
-                                  .toList();
-                              List<String> aiAnswer = answers[0]
-                                  .replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ')
-                                  .toLowerCase()
-                                  .split(' ')
-                                  .where((w) => w.trim().isNotEmpty)
-                                  .toList();
+                              List<String> userAnswer = normalizeAndSplitText(oneTextViewController.text);
+                              List<String> aiAnswer = normalizeAndSplitText(answers[0]);
                               int correct = 0;
                               for (String word in userAnswer) {
                                 if (aiAnswer.contains(word.toLowerCase())) {
@@ -352,7 +355,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                           if (!textToSpeechProvider.loading) {
                             textToSpeechProvider.stop().then((_) {
                               if (widget.exerciseIndex + 1 >= widget.lessonData.exercises.length) {
-                                double totalScore = widget.previousExerciseScore + score;
+                                double totalScore = widget.exerciseScore + score;
                                 changeScreenReplacement(
                                     context,
                                     BottomNavbar(
@@ -385,15 +388,30 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
     );
   }
 
+  bool isListOfInputTypeCorrect(String userInput, String answer) {
+    //|| answer.toLowerCase().contains(userInput.toLowerCase().trim())
+    if (answer.isEmpty) {
+      return false;
+    } else {
+      //Case 1: if answer exist in db, it can be one text or alternatives seperated by a comma
+      //Case 2: if answer doesn't exist in db, then is AI answer
+      answer = answer.replaceAll('’', '\'');
+      userInput = userInput.replaceAll('’', '\'');
+      return answer.toLowerCase().split(',').contains(userInput.toLowerCase().trim());
+    }
+  }
+
   getAnswers() async {
     try {
       if (widget.correction.inputText!.type == 'list-of-input-text') {
+        //case 1
         if (data!.every((element) => element['answer'] != '')) {
           for (Map map in data!) {
-            answers.add(map['answer'].toString().toLowerCase());
+            answers.add(map['answer']);
           }
-        } else {
-          //case when it has answer key in data but it is empty because it is a user specific question
+        }
+        //case 2: when it has answer key in data but it is empty because it is a user specific question
+        else {
           setState(() {
             isLoading = true;
           });
@@ -401,24 +419,28 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
             if (controllers[i].text != '') {
               if (data![i].containsKey('prefix')) {
                 //log('${data![i]['prefix']} ${controllers[i].text}');
-                String correctedText = await GeminiService.correctText('Corrige le texte: ${data![i]['prefix']} ${controllers[i].text}');
+                String correctedText = await GeminiService.correctText('${data![i]['prefix']} ${controllers[i].text}');
                 answers.add(correctedText);
               } else {
-                String correctedText = await GeminiService.correctText('Corrige le texte: ${controllers[i].text}');
+                String correctedText = await GeminiService.correctText(controllers[i].text);
                 answers.add(correctedText);
               }
+            } else {
+              answers.add('');
             }
           }
           setState(() {
             isLoading = false;
           });
         }
-      } else {
+      }
+      //case 3:
+      else {
         setState(() {
           isLoading = true;
         });
         if (oneTextViewController.text != '') {
-          String correctedText = await GeminiService.correctText('Corrige le texte: ${oneTextViewController.text}');
+          String correctedText = await GeminiService.correctText(oneTextViewController.text);
           answers.add(correctedText);
         }
         setState(() {
@@ -437,5 +459,13 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
         isLoading = false;
       });
     }
+  }
+
+  List<String> normalizeAndSplitText(String text) {
+    /*The regex is used to replace any sequence of one or more characters that are 
+    NOT letters (including accented ones), digits, underscores, apostrophes, or hyphens 
+    with a space ' '*/
+    final listOfString = text.replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ').split(' ').where((w) => w.trim().isNotEmpty).toList();
+    return listOfString;
   }
 }

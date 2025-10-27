@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_constants.dart';
@@ -6,12 +6,15 @@ import 'package:french_app/constants/app_icons.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/models/lesson_progress.dart';
+import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
+import 'package:french_app/screens/certificate.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/profile/settings.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -21,9 +24,33 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final String _usersCollection = 'users';
+  bool canViewCertificate = false;
+  getProgressAndReviews() async {
+    if (DatabaseService.currentUser != null) {
+      final progressSnapshot = await _firestore.collection(_usersCollection).doc(DatabaseService.currentUser!.uid).collection('lessonProgress').get();
+      if (progressSnapshot.docs.length >= 30) {
+        final reviewsSnapshot = await _firestore.collection(_usersCollection).doc(DatabaseService.currentUser!.uid).collection('reviews').get();
+        if (reviewsSnapshot.docs.isEmpty) {
+          canViewCertificate = true;
+          setState(() {});
+        }
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getProgressAndReviews();
+  }
+
   @override
   Widget build(BuildContext context) {
     bool canGoback = Navigator.canPop(context);
+    AppProvider appProvider = Provider.of<AppProvider>(context);
     return Scaffold(
       body: Column(
         children: [
@@ -71,10 +98,6 @@ class _ProfileState extends State<Profile> {
                                       int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                       int partialLessonIndex = subLessonIndex + (exerciseIndex ?? 0);
                                       int totalLessonIndex = snapshot.data![lessonIndex]!.totalLessonIndex;
-                                      if (index == 0) {
-                                        log(partialLessonIndex.toString());
-                                        log(totalLessonIndex.toString());
-                                      }
                                       return Padding(
                                           padding: const EdgeInsets.only(right: 15, top: 3),
                                           child: SizedBox(
@@ -87,11 +110,12 @@ class _ProfileState extends State<Profile> {
                                                         BottomNavbar(
                                                             pageIndex: 1,
                                                             newpage: DecisionScreen(
-                                                                lessonIndex: int.parse(lessonIndex),
+                                                                previousPageIndex: 1,
                                                                 lessonData: null, //important
+                                                                lessonIndex: int.parse(lessonIndex),
                                                                 subLessonIndex: subLessonIndex,
-                                                                exerciseIndex: 0, //exerciseIndex,
-                                                                previousPageIndex: 1)));
+                                                                exerciseIndex: 0 //exerciseIndex,
+                                                                )));
                                                   },
                                                   child: Stack(children: [
                                                     Container(
@@ -186,11 +210,12 @@ class _ProfileState extends State<Profile> {
                                                   BottomNavbar(
                                                       pageIndex: 1,
                                                       newpage: DecisionScreen(
-                                                          lessonIndex: int.parse(lessonIndex),
+                                                          previousPageIndex: 1,
                                                           lessonData: null, //important
+                                                          lessonIndex: int.parse(lessonIndex),
                                                           subLessonIndex: subLessonIndex,
-                                                          exerciseIndex: 0, //exerciseIndex,
-                                                          previousPageIndex: 1)));
+                                                          exerciseIndex: 0 //exerciseIndex,
+                                                          )));
                                             },
                                             child: Container(
                                                 height: double.infinity,
@@ -225,7 +250,16 @@ class _ProfileState extends State<Profile> {
                             : AppConstants.emptyLessonProgress(context)
                         : Center(child: CircularProgressIndicator());
                   }),
-              const SizedBox(height: 10)
+              canViewCertificate ? const SizedBox(height: 30) : const SizedBox(height: 10),
+              canViewCertificate
+                  ? CustomButton(
+                      text: 'View Certificate',
+                      color: AppColors.buttonColor,
+                      onpressed: () {
+                        changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                      },
+                    )
+                  : SizedBox.shrink(),
             ]),
           ),
           Spacer(),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 class PurchaseApi {
@@ -9,9 +10,9 @@ class PurchaseApi {
 
     late PurchasesConfiguration configuration;
     if (Platform.isAndroid) {
-      configuration = PurchasesConfiguration('revenuecat_project_google_api_key');
+      configuration = PurchasesConfiguration(dotenv.env['REVENUECAT_PROJECT_GOOGLE_API_KEY'] ?? '');
     } else if (Platform.isIOS) {
-      configuration = PurchasesConfiguration('revenuecat_project_apple_api_key');
+      configuration = PurchasesConfiguration(dotenv.env['REVENUECAT_PROJECT_APPLE_API_KEY'] ?? '');
     }
     await Purchases.configure(configuration);
   }

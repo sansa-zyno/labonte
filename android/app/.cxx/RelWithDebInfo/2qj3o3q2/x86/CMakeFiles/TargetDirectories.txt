@@ -1,0 +1,2 @@
+/Users/macbookpro/Documents/Flutter Projects/french_app/android/app/.cxx/RelWithDebInfo/2qj3o3q2/x86/CMakeFiles/edit_cache.dir
+/Users/macbookpro/Documents/Flutter Projects/french_app/android/app/.cxx/RelWithDebInfo/2qj3o3q2/x86/CMakeFiles/rebuild_cache.dir

@@ -4,10 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
+import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/modals/alert.dart';
 import 'package:french_app/models/user.dart';
 import 'package:french_app/provider/app_provider.dart';
-import 'package:french_app/screens/bottom_navbar.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +29,7 @@ class _OnboardingFinishedState extends State<OnboardingFinished> {
       await appProvider.getCurrentUserModel();
       await appProvider.getContinueLessonData();
       if (appProvider.userModel != null) {
-        changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
+        changeScreenRemoveUntill(context, Subscription(userModel: widget.userModel));
       } else {
         showDialog(
           context: context,
@@ -74,9 +75,9 @@ class _OnboardingFinishedState extends State<OnboardingFinished> {
                 color: AppColors.primaryColor,
                 borderRadius: BorderRadius.circular(10),
               ),
-              Spacer(flex: 2),
-              Image.asset(AppImages.success),
-              Spacer(flex: 3),
+              const Spacer(flex: 2),
+              Image.asset(AppImages.success, height: getSize(98, context)),
+              const Spacer(flex: 3),
             ],
           ),
         ),

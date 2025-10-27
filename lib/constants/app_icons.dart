@@ -14,4 +14,8 @@ class AppIcons {
   static const help = 'assets/icons/help.png';
   static const logout = 'assets/icons/logout.png';
   static const calender = 'assets/icons/calender.png';
+  static const download = 'assets/icons/download.png';
+  static const share2 = 'assets/icons/share2.png';
+  static const timer = 'assets/icons/timer.png';
+  static const user2 = 'assets/icons/user2.png';
 }

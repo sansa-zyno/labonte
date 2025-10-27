@@ -36,152 +36,120 @@ class _ConversationTypeState extends State<ConversationType> {
     scrollController = ScrollController();
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
     filename = 'Lesson${widget.lessonData.lessonIndex}_${widget.snapshot.id}';
-    textToSpeechProvider.playFullAudio(result: widget.snapshot['content'], snapshot: widget.snapshot, filename: filename);
+    textToSpeechProvider.playFullAudio(
+        result: widget.snapshot['content'], lessonIndex: widget.lessonData.lessonIndex, snapshot: widget.snapshot, filename: filename);
   }
 
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
-    return Scaffold(
-        body: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: appBarSpace),
-          Padding(
-            padding: const EdgeInsets.only(right: 15),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InkWell(
-                  onTap: () {
-                    if (!textToSpeechProvider.loading) {
-                      textToSpeechProvider.stop().then((_) {
-                        widget.goToBack(buildContext: context);
-                      });
-                    }
-                  },
-                  child: Icon(Icons.arrow_back),
-                ),
-                Spacer(),
-                CustomText(
-                  text: widget.snapshot['title'],
-                  size: getFontSize(18, context),
-                  weight: FontWeight.w500,
-                ),
-                Spacer(),
-              ],
-            ),
-          ),
-          SizedBox(height: getVerticalSize(15, context)),
-          AppConstants.buildHeaderSpeaker(
-            context: context,
-            icon: textToSpeechProvider.playerState == AudioPlayerState.playing
-                ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
-                : Padding(
-                    padding: const EdgeInsets.only(right: 8, top: 8),
-                    child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
-                  ),
-            loading: textToSpeechProvider.loading,
-            callBack: () async {
-              if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
-                await textToSpeechProvider.pause();
-              } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
-                await textToSpeechProvider.resume();
-              } else {
-                await textToSpeechProvider.repeatFullAudio(filename: filename);
-              }
-            },
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (x) {
+        if (!textToSpeechProvider.loading) {
+          textToSpeechProvider.stop().then((_) {
+            widget.goToBack(buildContext: context);
+          });
+        }
+      },
+      child: Scaffold(
+          body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: appBarSpace),
+            Padding(
+              padding: const EdgeInsets.only(right: 15),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: getVerticalSize(15, context)),
-                  CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
-                  SizedBox(height: getVerticalSize(15, context)),
-                  if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('illustration'))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 15),
-                      child: CachedImage(
-                        widget.snapshot['illustration'],
-                        width: double.infinity,
-                        fit: BoxFit.fitWidth,
-                      ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).maybePop();
+                    },
+                    child: Icon(Icons.arrow_back),
+                  ),
+                  Spacer(),
+                  CustomText(
+                    text: widget.snapshot['title'],
+                    size: getFontSize(18, context),
+                    weight: FontWeight.w500,
+                  ),
+                  Spacer(),
+                ],
+              ),
+            ),
+            SizedBox(height: getVerticalSize(15, context)),
+            AppConstants.buildHeaderSpeaker(
+              context: context,
+              icon: textToSpeechProvider.playerState == AudioPlayerState.playing
+                  ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
+                  : Padding(
+                      padding: const EdgeInsets.only(right: 8, top: 8),
+                      child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
                     ),
-                  ListView.builder(
-                    itemCount: widget.snapshot['content'].length + 1,
-                    physics: NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(0),
-                    controller: scrollController,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      if (index == widget.snapshot['content'].length) {
-                        return Container(
-                          height: 50,
-                        );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10.0),
-                                        constraints: BoxConstraints(maxWidth: 200),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xffE7E7F9),
-                                          borderRadius: BorderRadius.only(
-                                            bottomRight: Radius.circular(8),
-                                            topLeft: Radius.circular(8),
-                                            topRight: Radius.circular(8),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(widget.snapshot['content'][index]['person1'], style: TextStyle(fontSize: 14)),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Padding(
+              loading: textToSpeechProvider.loading,
+              callBack: () async {
+                if (textToSpeechProvider.playerState == AudioPlayerState.playing) {
+                  await textToSpeechProvider.pause();
+                } else if (textToSpeechProvider.playerState == AudioPlayerState.paused) {
+                  await textToSpeechProvider.resume();
+                } else {
+                  await textToSpeechProvider.repeatFullAudio(filename: filename);
+                }
+              },
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    SizedBox(height: getVerticalSize(15, context)),
+                    CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
+                    SizedBox(height: getVerticalSize(15, context)),
+                    if ((widget.snapshot.data() as Map<String, dynamic>).containsKey('illustration'))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 15),
+                        child: CachedImage(
+                          widget.snapshot['illustration'],
+                          width: double.infinity,
+                          fit: BoxFit.fitWidth,
+                        ),
+                      ),
+                    ListView.builder(
+                      itemCount: widget.snapshot['content'].length + 1,
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.all(0),
+                      controller: scrollController,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        if (index == widget.snapshot['content'].length) {
+                          return Container(
+                            height: 50,
+                          );
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
                               padding: const EdgeInsets.symmetric(vertical: 5),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Flexible(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Container(
-                                          constraints: BoxConstraints(maxWidth: 200),
                                           padding: const EdgeInsets.all(10.0),
+                                          constraints: BoxConstraints(maxWidth: 200),
                                           decoration: BoxDecoration(
                                             color: Color(0xffE7E7F9),
                                             borderRadius: BorderRadius.only(
-                                              bottomLeft: Radius.circular(8),
+                                              bottomRight: Radius.circular(8),
                                               topLeft: Radius.circular(8),
                                               topRight: Radius.circular(8),
                                             ),
@@ -189,10 +157,7 @@ class _ConversationTypeState extends State<ConversationType> {
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Text(
-                                                widget.snapshot['content'][index]['person2'],
-                                                style: TextStyle(fontSize: 14.0),
-                                              ),
+                                              Text(widget.snapshot['content'][index]['person1'], style: TextStyle(fontSize: 14)),
                                             ],
                                           ),
                                         ),
@@ -202,47 +167,89 @@ class _ConversationTypeState extends State<ConversationType> {
                                 ],
                               ),
                             ),
-                          )
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 5),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            constraints: BoxConstraints(maxWidth: 200),
+                                            padding: const EdgeInsets.all(10.0),
+                                            decoration: BoxDecoration(
+                                              color: Color(0xffE7E7F9),
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft: Radius.circular(8),
+                                                topLeft: Radius.circular(8),
+                                                topRight: Radius.circular(8),
+                                              ),
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  widget.snapshot['content'][index]['person2'],
+                                                  style: TextStyle(fontSize: 14.0),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(height: getVerticalSize(30, context)),
-          Center(
-            child: CustomButton(
-              width: getHorizontalSize(250, context),
-              text: 'Repeat audio',
-              textColor: AppColors.primaryColor,
-              border: Border.all(color: AppColors.primaryColor, width: 1.5),
-              onpressed: () {
-                textToSpeechProvider.repeatFullAudio(filename: filename);
-              },
+            SizedBox(height: getVerticalSize(30, context)),
+            Center(
+              child: CustomButton(
+                width: getHorizontalSize(250, context),
+                text: 'Repeat audio',
+                textColor: AppColors.primaryColor,
+                border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                onpressed: () {
+                  textToSpeechProvider.repeatFullAudio(filename: filename);
+                },
+              ),
             ),
-          ),
-          SizedBox(
-            height: getVerticalSize(15, context),
-          ),
-          Opacity(
-            opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
-            child: CustomButton(
-              text: 'Ok, got it',
-              color: AppColors.buttonColor,
-              onpressed: () {
-                if (!textToSpeechProvider.loading) {
-                  textToSpeechProvider.stop().then((_) {
-                    widget.goToNext(buildContext: context);
-                  });
-                }
-              },
+            SizedBox(
+              height: getVerticalSize(15, context),
             ),
-          ),
-          SizedBox(height: getVerticalSize(30, context)),
-        ],
-      ),
-    ));
+            Opacity(
+              opacity: textToSpeechProvider.loading ? 0.3 : 1.0,
+              child: CustomButton(
+                text: 'Ok, got it',
+                color: AppColors.buttonColor,
+                onpressed: () {
+                  if (!textToSpeechProvider.loading) {
+                    textToSpeechProvider.stop().then((_) {
+                      widget.goToNext(buildContext: context);
+                    });
+                  }
+                },
+              ),
+            ),
+            SizedBox(height: getVerticalSize(30, context)),
+          ],
+        ),
+      )),
+    );
   }
 }
