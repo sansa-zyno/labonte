@@ -44,7 +44,6 @@ class _MatchingTypeState extends State<MatchingType> {
   List<Map<String, dynamic>> questions = [];
   List<String> englishOptions = [];
   Map<int, int> userAnswers = {};
-  int correctAnswerCount = 0;
 
   @override
   void initState() {
