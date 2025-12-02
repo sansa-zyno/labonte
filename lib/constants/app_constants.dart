@@ -130,7 +130,8 @@ class AppConstants {
                         context,
                         BottomNavbar(
                             pageIndex: 1,
-                            newpage: DecisionScreen(
+                            newpage: const DecisionScreen(
+                              isReview: false,
                               previousPageIndex: 1,
                               lessonData: null,
                               lessonIndex: 1,

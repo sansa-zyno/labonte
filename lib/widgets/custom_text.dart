@@ -38,7 +38,7 @@ class CustomText extends StatelessWidget {
           color: color ?? AppColors.blackColor3,
           fontFamily: fontFamily,
           fontWeight: weight ?? FontWeight.normal,
-          height: lineHeight ?? getVerticalSize(1.4, context),
+          height: 1.0, //❌Make sure you are not using the responsive methods here
           decoration: textDecoration),
       textAlign: textAlign ?? TextAlign.start,
       maxLines: maxlines,

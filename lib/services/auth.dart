@@ -45,4 +45,14 @@ class AuthService {
       //print(e.toString());
     }
   }
+
+  static Future<void> deleteAccount() async {
+    try {
+      if (_auth.currentUser != null) {
+        await _auth.currentUser!.delete();
+      }
+    } catch (e) {
+      //print(e.toString());
+    }
+  }
 }

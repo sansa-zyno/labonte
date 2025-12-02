@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/models/review.dart';
 import 'package:french_app/models/user.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/services/local_storage.dart';
 
 class DatabaseService {
@@ -39,6 +39,16 @@ class DatabaseService {
     }
   }
 
+  // Update user subscription status
+  static Future<void> updateUserSubscriptionStatus(String userId, isSubscribed) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(userId).update({'isSubscribed': isSubscribed});
+    } catch (e) {
+      // print('Error updating User Subscription Status: $e');
+      rethrow;
+    }
+  }
+
   // Get user by ID
   static Future<UserModel?> getUser(String userId) async {
     try {
@@ -61,6 +71,16 @@ class DatabaseService {
       return getUser(user.uid);
     } catch (e) {
       //print('Error getting current user model: $e');
+      rethrow;
+    }
+  }
+
+  // Delete user
+  static Future<void> deleteUser(String userId) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(userId).delete();
+    } catch (e) {
+      //print('Error updating user: $e');
       rethrow;
     }
   }
@@ -223,5 +243,35 @@ class DatabaseService {
       //print('Error removing from reviews: $e');
       rethrow;
     }
+  }
+
+//find the next unpassed lesson
+  static Future<int?> findNextUnpassedLesson({
+    required String userId,
+    required int currentLessonIndex,
+    required int totalLessons,
+    required int maxScore,
+    double passMark = 50.0,
+  }) async {
+    int nextLessonIndex = currentLessonIndex + 1;
+
+    while (nextLessonIndex <= totalLessons) {
+      final docSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(userId).collection('lessonProgress').doc(nextLessonIndex.toString()).get();
+
+      final double existingScore = docSnapshot.exists ? (docSnapshot.data()?['score'] ?? 0).toDouble() : 0.0;
+      if (maxScore == 0) {
+        maxScore = 1; //Prevent NAN when it's no-exercise type of lesson e.g lesson 26
+      }
+      int percentScore = ((existingScore / maxScore) * 100).round();
+
+      if (percentScore < passMark) {
+        return nextLessonIndex; // Found a lesson below pass mark
+      }
+
+      nextLessonIndex++;
+    }
+
+    return null; // All lessons passed
   }
 }

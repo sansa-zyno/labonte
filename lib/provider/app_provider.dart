@@ -1,8 +1,8 @@
-//import 'dart:developer';
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/models/user.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/services/local_storage.dart';
 
@@ -11,13 +11,14 @@ class AppProvider extends ChangeNotifier {
   LessonData? continueLessonData;
   int continueSubLessonIndex = 0;
   int? continueExerciseIndex;
+  bool isReview = false;
 
   Future<void> getCurrentUserModel() async {
     try {
       userModel = await DatabaseService.getCurrentUserModel();
       notifyListeners();
     } catch (e) {
-      // log(e.toString());
+      log(e.toString());
       userModel = null;
       notifyListeners();
     }
@@ -26,6 +27,7 @@ class AppProvider extends ChangeNotifier {
   Future<void> getContinueLessonData() async {
     try {
       continueLessonData = null;
+      isReview = await LocalStorage().getBool('isReview') ?? false;
       String? continueLessonIndex = await LocalStorage().getString('continueLessonIndex');
       String? continueSubLessonIndexString = await LocalStorage().getString('continueSubLessonIndex');
       String? continueExerciseIndexString = await LocalStorage().getString('continueExerciseIndex');
@@ -47,7 +49,7 @@ class AppProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      //log('Cannot get saved lesson data >>> ' + e.toString());
+      log('Cannot get saved lesson data >>> ${e.toString()}');
     }
   }
 }

@@ -5,8 +5,8 @@ import 'package:french_app/constants/app_constants.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +32,10 @@ class _AlphaNumericTypeState extends State<AlphaNumericType> {
     // TODO: implement initState
     super.initState();
     if (widget.snapshot['type'] == 'alphabet') {
-      newMap = widget.snapshot['content'] as Map<String, dynamic>;
+      //newMap = widget.snapshot['content'] as Map<String, dynamic>;
+      newMap = Map.fromEntries(
+        (widget.snapshot['content'] as Map<String, dynamic>).entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
+      );
     } else {
       newMap = Map.fromEntries(
         (widget.snapshot['content'] as Map<String, dynamic>).entries.toList()..sort((a, b) => int.parse(a.key).compareTo(int.parse(b.key))),

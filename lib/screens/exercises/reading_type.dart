@@ -4,10 +4,10 @@ import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/models/exercise_correction.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/stt_provider.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/correction/reading_correction.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -15,15 +15,17 @@ import 'package:provider/provider.dart';
 import 'package:simple_ripple_animation/simple_ripple_animation.dart';
 
 class ReadingType extends StatefulWidget {
+  final bool isReview;
   final DocumentSnapshot snapshot;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
   final double exerciseScore;
-  final List<double>? exerciseScoreTrackingList;
+  final List<double>? exerciseScoreTrackingList; //used in correct screen
   const ReadingType(
       {Key? key,
+      required this.isReview,
       required this.snapshot,
       required this.goToNext,
       required this.goToBack,
@@ -280,6 +282,7 @@ class _ReadingTypeState extends State<ReadingType> {
                           BottomNavbar(
                             pageIndex: 1,
                             newpage: ReadingCorrection(
+                              isReview: widget.isReview,
                               correction: correction,
                               goToNext: widget.goToNext,
                               lessonData: widget.lessonData,

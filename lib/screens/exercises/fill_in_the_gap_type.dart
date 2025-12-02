@@ -7,23 +7,25 @@ import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/models/exercise_correction.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/correction/fill_in_the_gap_correction.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
 
 class FillInTheGapType extends StatefulWidget {
+  final bool isReview;
   final DocumentSnapshot snapshot;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
   final double exerciseScore;
-  final List<double>? exerciseScoreTrackingList;
+  final List<double>? exerciseScoreTrackingList; //used in correct screen
   const FillInTheGapType({
+    required this.isReview,
     required this.snapshot,
     required this.goToNext,
     required this.goToBack,
@@ -278,16 +280,12 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
                                 child: SizedBox(
                                   height: 20,
                                   width: (widget.snapshot['type'].toString().contains('sentence')
-                                      ? answers[index].isEmpty
-                                          ? 100
-                                          : ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
+                                      ? ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
                                       : 25.0),
                                   child: TextField(
                                       controller: controllers[index][controllerIndex],
                                       maxLength: widget.snapshot['type'].toString().contains('sentence')
-                                          ? answers[index].isEmpty
-                                              ? null
-                                              : answers[index].split(',')[controllerIndex].length + 2
+                                          ? answers[index].split(',')[controllerIndex].length + 2
                                           : 1,
                                       textAlign: widget.snapshot['type'].toString().contains('sentence') ? TextAlign.start : TextAlign.center,
                                       style: const TextStyle(fontSize: 14),
@@ -339,6 +337,7 @@ class _FillInTheGapTypeState extends State<FillInTheGapType> {
                             BottomNavbar(
                               pageIndex: 1,
                               newpage: FillInTheGapCorrection(
+                                isReview: widget.isReview,
                                 correction: correction,
                                 goToNext: widget.goToNext,
                                 lessonData: widget.lessonData,

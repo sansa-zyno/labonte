@@ -9,6 +9,7 @@ class UserModel {
   final List<String>? purposeForLearning;
   final List<String>? learningGoals;
   final String? heardAboutUs;
+  final bool? isSubscribed;
   UserModel(
       {required this.id,
       this.name,
@@ -19,20 +20,21 @@ class UserModel {
       this.frequencyOfLearning,
       this.purposeForLearning,
       this.learningGoals,
-      this.heardAboutUs});
+      this.heardAboutUs,
+      this.isSubscribed});
 
-  UserModel copyWith({
-    String? id,
-    String? name,
-    String? email,
-    String? avatar,
-    String? country,
-    String? userFrenchLevel,
-    String? frequencyOfLearning,
-    List<String>? purposeForLearning,
-    List<String>? learningGoals,
-    String? heardAboutUs,
-  }) {
+  UserModel copyWith(
+      {String? id,
+      String? name,
+      String? email,
+      String? avatar,
+      String? country,
+      String? userFrenchLevel,
+      String? frequencyOfLearning,
+      List<String>? purposeForLearning,
+      List<String>? learningGoals,
+      String? heardAboutUs,
+      bool? isSubscribed}) {
     return UserModel(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -43,7 +45,8 @@ class UserModel {
         frequencyOfLearning: frequencyOfLearning ?? this.frequencyOfLearning,
         purposeForLearning: purposeForLearning ?? this.purposeForLearning,
         learningGoals: learningGoals ?? this.learningGoals,
-        heardAboutUs: heardAboutUs ?? this.heardAboutUs);
+        heardAboutUs: heardAboutUs ?? this.heardAboutUs,
+        isSubscribed: isSubscribed ?? this.isSubscribed);
   }
 
   factory UserModel.fromMap(String id, Map<String, dynamic> data) {
@@ -57,7 +60,8 @@ class UserModel {
         frequencyOfLearning: data['frequencyOfLearning'],
         purposeForLearning: List<String>.from(data['purposeForLearning']),
         learningGoals: List<String>.from(data['learningGoals']),
-        heardAboutUs: data['heardAboutUs']);
+        heardAboutUs: data['heardAboutUs'],
+        isSubscribed: data['isSubscribed']);
   }
 
   Map<String, dynamic> toMap() {
@@ -71,7 +75,8 @@ class UserModel {
       'frequencyOfLearning': frequencyOfLearning,
       'purposeForLearning': purposeForLearning ?? [],
       'learningGoals': learningGoals ?? [],
-      'heardAboutUs': heardAboutUs
+      'heardAboutUs': heardAboutUs,
+      'isSubscribed': isSubscribed
     };
   }
 }

@@ -5,12 +5,15 @@ import 'package:french_app/constants/app_constants.dart';
 import 'package:french_app/constants/app_icons.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/entitlement.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/certificate.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/profile/settings.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -51,6 +54,9 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     bool canGoback = Navigator.canPop(context);
     AppProvider appProvider = Provider.of<AppProvider>(context);
+    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
+    String? period = entitlementProvider.entitlementInfo?.periodType.name;
+    String? expiryTime = entitlementProvider.expiryTimeCalc();
     return Scaffold(
       body: Column(
         children: [
@@ -98,6 +104,11 @@ class _ProfileState extends State<Profile> {
                                       int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                       int partialLessonIndex = subLessonIndex + (exerciseIndex ?? 0);
                                       int totalLessonIndex = snapshot.data![lessonIndex]!.totalLessonIndex;
+
+                                      // ──────────────────────────────────────────────────────────────
+                                      // Size of one circle (you can change this value freely)
+                                      final double circleSize = getSize(70.0, context);
+                                      // ──────────────────────────────────────────────────────────────
                                       return Padding(
                                           padding: const EdgeInsets.only(right: 15, top: 3),
                                           child: SizedBox(
@@ -105,36 +116,62 @@ class _ProfileState extends State<Profile> {
                                               child: Column(children: [
                                                 GestureDetector(
                                                   onTap: () {
-                                                    changeScreen(
-                                                        context,
-                                                        BottomNavbar(
-                                                            pageIndex: 1,
-                                                            newpage: DecisionScreen(
-                                                                previousPageIndex: 1,
-                                                                lessonData: null, //important
-                                                                lessonIndex: int.parse(lessonIndex),
-                                                                subLessonIndex: subLessonIndex,
-                                                                exerciseIndex: 0 //exerciseIndex,
-                                                                )));
+                                                    if (entitlementProvider.entitlement == Entitlement.pro) {
+                                                      changeScreen(
+                                                          context,
+                                                          BottomNavbar(
+                                                              pageIndex: 1,
+                                                              newpage: DecisionScreen(
+                                                                  isReview: false,
+                                                                  previousPageIndex: 1,
+                                                                  lessonData: null, //important
+                                                                  lessonIndex: int.parse(lessonIndex),
+                                                                  subLessonIndex: subLessonIndex,
+                                                                  exerciseIndex: 0 //exerciseIndex,
+                                                                  )));
+                                                    } else {
+                                                      changeScreen(context, Subscription());
+                                                    }
                                                   },
-                                                  child: Stack(children: [
-                                                    Container(
-                                                        height: 65,
-                                                        width: 65,
-                                                        decoration: BoxDecoration(color: AppColors.red2.withOpacity(0.2), shape: BoxShape.circle),
-                                                        child: Center(
-                                                            child: Container(
-                                                                alignment: Alignment.center,
-                                                                height: 30,
-                                                                width: 30,
-                                                                decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2.0)),
-                                                                child: CustomText(text: "L${lessonIndex}", weight: FontWeight.w600)))),
-                                                    SizedBox(
-                                                        height: 65,
-                                                        width: 65,
+                                                  child: Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      // Background circle (light red)
+                                                      Container(
+                                                        height: circleSize,
+                                                        width: circleSize,
+                                                        decoration: BoxDecoration(
+                                                          color: AppColors.red2.withOpacity(0.2),
+                                                          shape: BoxShape.circle,
+                                                        ),
+                                                      ),
+
+                                                      // The actual progress ring
+                                                      SizedBox(
+                                                        height: circleSize,
+                                                        width: circleSize,
                                                         child: CircularProgressIndicator(
-                                                            color: AppColors.red2.withOpacity(0.6), value: partialLessonIndex / totalLessonIndex))
-                                                  ]),
+                                                          value: partialLessonIndex / totalLessonIndex,
+                                                          color: AppColors.red2.withOpacity(0.6),
+                                                        ),
+                                                      ),
+
+                                                      // Inner "L7", "L8" etc.
+                                                      Container(
+                                                        height: getVerticalSize(30, context),
+                                                        width: getHorizontalSize(30, context),
+                                                        decoration: BoxDecoration(
+                                                          border: Border.all(color: Colors.black, width: 2),
+                                                        ),
+                                                        alignment: Alignment.center,
+                                                        child: CustomText(
+                                                          text: "L$lessonIndex",
+                                                          weight: FontWeight.w600,
+                                                          textAlign: TextAlign.center,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                                 SizedBox(height: getVerticalSize(10, context)),
                                                 CustomText(
@@ -170,7 +207,7 @@ class _ProfileState extends State<Profile> {
                         SizedBox(width: getHorizontalSize(15, context)),
                         CustomButton(
                             text: 'Ask AI',
-                            height: 28,
+                            height: getVerticalSize(28, context),
                             color: AppColors.whiteColor1,
                             padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                             textSize: getFontSize(11, context),
@@ -205,21 +242,26 @@ class _ProfileState extends State<Profile> {
                                           //int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                           return GestureDetector(
                                             onTap: () {
-                                              changeScreen(
-                                                  context,
-                                                  BottomNavbar(
-                                                      pageIndex: 1,
-                                                      newpage: DecisionScreen(
-                                                          previousPageIndex: 1,
-                                                          lessonData: null, //important
-                                                          lessonIndex: int.parse(lessonIndex),
-                                                          subLessonIndex: subLessonIndex,
-                                                          exerciseIndex: 0 //exerciseIndex,
-                                                          )));
+                                              if (entitlementProvider.entitlement == Entitlement.pro) {
+                                                changeScreen(
+                                                    context,
+                                                    BottomNavbar(
+                                                        pageIndex: 1,
+                                                        newpage: DecisionScreen(
+                                                            isReview: false,
+                                                            previousPageIndex: 1,
+                                                            lessonData: null, //important
+                                                            lessonIndex: int.parse(lessonIndex),
+                                                            subLessonIndex: subLessonIndex,
+                                                            exerciseIndex: 0 //exerciseIndex,
+                                                            )));
+                                              } else {
+                                                changeScreen(context, Subscription());
+                                              }
                                             },
                                             child: Container(
                                                 height: double.infinity,
-                                                width: 150,
+                                                width: getHorizontalSize(150, context),
                                                 padding: EdgeInsets.all(8),
                                                 margin: EdgeInsets.only(right: 8),
                                                 decoration: BoxDecoration(
@@ -256,7 +298,11 @@ class _ProfileState extends State<Profile> {
                       text: 'View Certificate',
                       color: AppColors.buttonColor,
                       onpressed: () {
-                        changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                        if (entitlementProvider.entitlement == Entitlement.pro) {
+                          changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                        } else {
+                          changeScreen(context, Subscription());
+                        }
                       },
                     )
                   : SizedBox.shrink(),
@@ -268,8 +314,12 @@ class _ProfileState extends State<Profile> {
               height: 50,
               width: double.infinity,
               decoration: BoxDecoration(color: AppColors.yellow.withOpacity(0.8)),
-              child: CustomText(text: 'Your free trial will end in 2 days')),
-          Spacer()
+              child: entitlementProvider.entitlementInfo == null
+                  ? CustomText(text: 'No active subscription')
+                  : expiryTime == null
+                      ? CustomText(text: 'Your ${period == null || period == 'trial' ? "free trial" : 'subscription'} has ended')
+                      : CustomText(text: 'Your ${period == null || period == 'trial' ? "free trial" : 'subscription'} will end in $expiryTime')),
+          Spacer(),
         ],
       ),
     );

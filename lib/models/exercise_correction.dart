@@ -7,6 +7,7 @@ class ExerciseCorrection {
   Reading? reading;
   FillInTheGap? fillInTheGap;
   InputText? inputText;
+  Matching? matching;
 
   ExerciseCorrection({
     required this.id,
@@ -15,6 +16,7 @@ class ExerciseCorrection {
     this.reading,
     this.fillInTheGap,
     this.inputText,
+    this.matching,
   });
 }
 
@@ -51,4 +53,11 @@ class InputText {
   List<TextEditingController> controllers;
   TextEditingController oneTextViewController;
   InputText({required this.type, required this.data, required this.images, required this.controllers, required this.oneTextViewController});
+}
+
+class Matching {
+  List<Map<String, dynamic>> questions;
+  List<String> englishOptions;
+  Map<int, int> userAnswers;
+  Matching({required this.questions, required this.englishOptions, required this.userAnswers});
 }

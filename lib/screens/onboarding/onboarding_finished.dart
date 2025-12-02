@@ -8,9 +8,11 @@ import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/modals/alert.dart';
 import 'package:french_app/models/user.dart';
 import 'package:french_app/provider/app_provider.dart';
-import 'package:french_app/screens/subscription.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
+import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/services/database.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 class OnboardingFinished extends StatefulWidget {
   final UserModel userModel;
@@ -22,6 +24,7 @@ class OnboardingFinished extends StatefulWidget {
 
 class _OnboardingFinishedState extends State<OnboardingFinished> {
   late AppProvider appProvider;
+  late EntitlementProvider entitlementProvider;
   Timer? timer;
   goToNextScreen() async {
     timer = Timer(const Duration(seconds: 1), () async {
@@ -29,7 +32,9 @@ class _OnboardingFinishedState extends State<OnboardingFinished> {
       await appProvider.getCurrentUserModel();
       await appProvider.getContinueLessonData();
       if (appProvider.userModel != null) {
-        changeScreenRemoveUntill(context, Subscription(userModel: widget.userModel));
+        await Purchases.logIn(widget.userModel.id);
+        await entitlementProvider.init();
+        changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
       } else {
         showDialog(
           context: context,
@@ -44,6 +49,7 @@ class _OnboardingFinishedState extends State<OnboardingFinished> {
     // TODO: implement initState
     super.initState();
     appProvider = Provider.of<AppProvider>(context, listen: false);
+    entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
     goToNextScreen();
   }
 

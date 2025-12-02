@@ -7,13 +7,12 @@ import 'dart:async';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/modals/alert.dart';
-import 'package:french_app/models/entitlement.dart';
 import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/getting_started.dart';
-import 'package:french_app/screens/subscription.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -37,11 +36,9 @@ class _SplashScreenState extends State<SplashScreen> {
         await appProvider.getCurrentUserModel();
         await appProvider.getContinueLessonData();
         if (appProvider.userModel != null) {
-          if (entitlementProvider.entitlement == Entitlement.pro) {
-            changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
-          } else {
-            changeScreenReplacement(context, Subscription(userModel: appProvider.userModel!));
-          }
+          await Purchases.logIn(appProvider.userModel!.id);
+          await entitlementProvider.init();
+          changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
         } else {
           showDialog(
             context: context,

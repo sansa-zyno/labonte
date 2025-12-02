@@ -1,3 +1,4 @@
+//import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:french_app/constants/app_colors.dart';
@@ -6,16 +7,20 @@ import 'package:french_app/constants/app_icons.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/entitlement.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/models/review.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/profile/profile.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
@@ -30,6 +35,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     AppProvider appProvider = Provider.of<AppProvider>(context);
+    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
     return AnnotatedRegion(
       value: const SystemUiOverlayStyle(statusBarColor: AppColors.whiteColor1, systemNavigationBarColor: AppColors.whiteColor1),
       child: Scaffold(
@@ -49,8 +55,21 @@ class _HomeState extends State<Home> {
                         size: getFontSize(16, context),
                         weight: FontWeight.w600),
                     InkWell(
-                      onTap: () {
+                      onTap: () async {
                         changeScreen(context, BottomNavbar(pageIndex: 3, newpage: const Profile()));
+                        //////////////////////////////////////////////////////////
+                        String? expiryTime = entitlementProvider.expiryTimeCalc();
+                        if (expiryTime == null) {
+                          //Subcription has expired
+                          //Clear the cache immediately and fetch new customerInfo from network
+                          await Purchases.invalidateCustomerInfoCache();
+                          await Purchases.getCustomerInfo();
+                        } else {
+                          //Call this in your app regularly.
+                          //It caches CustomerInfo but only fetch new customerInfo from network after every 5mins
+                          //Listeners will be fired only after every 5 minutes
+                          await Purchases.getCustomerInfo();
+                        }
                       },
                       child: Image.asset(
                         AppIcons.user,
@@ -73,25 +92,26 @@ class _HomeState extends State<Home> {
                       ),
                       Positioned(bottom: 0, right: 12, child: Image.asset(AppImages.girl2)),
                       Positioned(
-                          top: 30,
-                          left: 10,
+                          top: getVerticalSize(30, context),
+                          left: getHorizontalSize(10, context),
                           child: CustomText(
                               text: 'LECON ${appProvider.continueLessonData?.lessonIndex ?? 1} 0f 30',
                               size: getFontSize(fontSizeSmall, context),
                               weight: FontWeight.w500,
                               color: AppColors.whiteColor1)),
                       Positioned(
-                          top: 50,
-                          left: 10,
-                          right: 150,
+                          top: getVerticalSize(50, context),
+                          left: getHorizontalSize(10, context),
+                          right: getHorizontalSize(150, context),
                           child: CustomText(
-                              text: '${appProvider.continueLessonData?.subLessons[0]['title'].split(':')[1].trim() ?? 'LES ALPHABETS FRANÇAIS'}',
+                              text:
+                                  '${appProvider.continueLessonData?.subLessons.elementAtOrNull(0)?['title'].split(':')[1].trim() ?? 'LES ALPHABETS FRANÇAIS'}',
                               size: getFontSize(fontSizeSmall, context),
                               weight: FontWeight.w500,
                               color: AppColors.whiteColor1)),
                       Positioned(
-                          bottom: 50,
-                          left: 10,
+                          bottom: getVerticalSize(50, context),
+                          left: getHorizontalSize(10, context),
                           child: CustomButton(
                             height: getVerticalSize(36, context),
                             padding: EdgeInsets.symmetric(horizontal: 15),
@@ -100,17 +120,22 @@ class _HomeState extends State<Home> {
                             text: appProvider.continueLessonData == null ? 'Start Now' : 'Continue',
                             icon: Image.asset(AppImages.play, color: AppColors.primaryColor, height: getSize(15, context)),
                             onpressed: () {
-                              changeScreen(
-                                  context,
-                                  BottomNavbar(
-                                      pageIndex: 1,
-                                      newpage: DecisionScreen(
-                                          previousPageIndex: 1,
-                                          lessonData: appProvider.continueLessonData,
-                                          lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
-                                          subLessonIndex: appProvider.continueSubLessonIndex,
-                                          exerciseIndex: 0 //appProvider.continueExerciseIndex,
-                                          )));
+                              if (entitlementProvider.entitlement == Entitlement.pro) {
+                                changeScreen(
+                                    context,
+                                    BottomNavbar(
+                                        pageIndex: 1,
+                                        newpage: DecisionScreen(
+                                            isReview: appProvider.isReview,
+                                            previousPageIndex: 1,
+                                            lessonData: appProvider.continueLessonData,
+                                            lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
+                                            subLessonIndex: appProvider.continueSubLessonIndex,
+                                            exerciseIndex: 0 //appProvider.continueExerciseIndex,
+                                            )));
+                              } else {
+                                changeScreen(context, Subscription());
+                              }
                             },
                           ))
                     ],
@@ -140,20 +165,25 @@ class _HomeState extends State<Home> {
                                             //int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                             return GestureDetector(
                                               onTap: () {
-                                                changeScreen(
-                                                    context,
-                                                    BottomNavbar(
-                                                        pageIndex: 1,
-                                                        newpage: DecisionScreen(
-                                                            previousPageIndex: 1,
-                                                            lessonData: null, //important
-                                                            lessonIndex: int.parse(lessonIndex),
-                                                            subLessonIndex: subLessonIndex,
-                                                            exerciseIndex: 0 //exerciseIndex,
-                                                            )));
+                                                if (entitlementProvider.entitlement == Entitlement.pro) {
+                                                  changeScreen(
+                                                      context,
+                                                      BottomNavbar(
+                                                          pageIndex: 1,
+                                                          newpage: DecisionScreen(
+                                                              isReview: false,
+                                                              previousPageIndex: 1,
+                                                              lessonData: null, //important
+                                                              lessonIndex: int.parse(lessonIndex),
+                                                              subLessonIndex: subLessonIndex,
+                                                              exerciseIndex: 0 //exerciseIndex,
+                                                              )));
+                                                } else {
+                                                  changeScreen(context, Subscription());
+                                                }
                                               },
                                               child: Container(
-                                                  width: 150,
+                                                  width: getHorizontalSize(150, context),
                                                   padding: EdgeInsets.all(8),
                                                   margin: EdgeInsets.only(right: 8),
                                                   decoration: BoxDecoration(
@@ -215,7 +245,7 @@ class _HomeState extends State<Home> {
                         SizedBox(width: getHorizontalSize(15, context)),
                         CustomButton(
                           text: 'Ask AI',
-                          height: 28,
+                          height: getVerticalSize(28, context),
                           color: AppColors.whiteColor1,
                           padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                           textSize: getFontSize(11, context),
@@ -283,7 +313,7 @@ class _HomeState extends State<Home> {
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.person_3, size: 12),
+                                      Icon(Icons.person_3, size: getSize(12, context)),
                                       SizedBox(width: getHorizontalSize(3, context)),
                                       CustomText(
                                         text: 'Private',
@@ -305,7 +335,11 @@ class _HomeState extends State<Home> {
                         textSize: getFontSize(12, context),
                         color: AppColors.buttonColor,
                         onpressed: () {
-                          launchCalendryUrl('labontelanguages-info/new-meeting');
+                          if (entitlementProvider.entitlement == Entitlement.pro) {
+                            launchCalendryUrl('labontelanguages-info/new-meeting');
+                          } else {
+                            changeScreen(context, Subscription());
+                          }
                         },
                       )
                     ],
@@ -331,19 +365,24 @@ class _HomeState extends State<Home> {
                                     scrollDirection: Axis.horizontal,
                                     itemBuilder: (ctx, index) => GestureDetector(
                                           onTap: () {
-                                            changeScreen(
-                                                context,
-                                                BottomNavbar(
-                                                    pageIndex: 1,
-                                                    newpage: DecisionScreen(
-                                                        previousPageIndex: 1,
-                                                        lessonData: null, //important
-                                                        lessonIndex: int.parse(snapshot.data![index].lessonId),
-                                                        subLessonIndex: 0,
-                                                        exerciseIndex: null)));
+                                            if (entitlementProvider.entitlement == Entitlement.pro) {
+                                              changeScreen(
+                                                  context,
+                                                  BottomNavbar(
+                                                      pageIndex: 1,
+                                                      newpage: DecisionScreen(
+                                                          isReview: true,
+                                                          previousPageIndex: 1,
+                                                          lessonData: null, //important
+                                                          lessonIndex: int.parse(snapshot.data![index].lessonId),
+                                                          subLessonIndex: 0,
+                                                          exerciseIndex: null)));
+                                            } else {
+                                              changeScreen(context, Subscription());
+                                            }
                                           },
                                           child: Container(
-                                            width: 150,
+                                            width: getHorizontalSize(150, context),
                                             height: double.infinity,
                                             padding: EdgeInsets.all(8),
                                             margin: EdgeInsets.only(right: 8),

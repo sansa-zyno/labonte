@@ -59,10 +59,11 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasCustomPadding = (usePadding ?? false);
     return SizedBox(
       height: height,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: (usePadding ?? false) == false ? 0 : 10.0),
+        padding: EdgeInsets.symmetric(horizontal: hasCustomPadding ? 10.0 : 0),
         child: TextFormField(
           keyboardType: keyBoardType,
           controller: controller,
@@ -88,7 +89,12 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixText: suffixText,
             fillColor: fillColor ?? Colors.white,
-            contentPadding: contentPadding ?? const EdgeInsets.all(0),
+            contentPadding: contentPadding,
+            /*contentPadding: contentPadding ??
+                EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: maxLines == null || (maxLines ?? 1) > 1 ? 16 : 18,
+                ),*/
             filled: true,
             hintStyle: hintStyle ??
                 TextStyle(

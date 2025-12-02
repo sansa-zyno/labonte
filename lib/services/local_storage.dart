@@ -5,7 +5,7 @@ class LocalStorage {
 
   setString(String key, String val) async {
     prefs = await SharedPreferences.getInstance();
-    prefs!.setString(key, val);
+    await prefs!.setString(key, val);
   }
 
   Future<String?> getString(String key) async {
@@ -15,21 +15,21 @@ class LocalStorage {
 
   setBool(String key, bool val) async {
     prefs = await SharedPreferences.getInstance();
-    prefs!.setBool(key, val);
+    await prefs!.setBool(key, val);
   }
 
-  getBool(String key) async {
+  Future<bool?> getBool(String key) async {
     prefs = await SharedPreferences.getInstance();
     return prefs!.getBool(key);
   }
 
   remove(String key) async {
     prefs = await SharedPreferences.getInstance();
-    return prefs!.remove(key);
+    return await prefs!.remove(key);
   }
 
   clearPref() async {
     prefs = await SharedPreferences.getInstance();
-    return prefs!.clear();
+    return await prefs!.clear();
   }
 }

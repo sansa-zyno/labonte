@@ -14,7 +14,7 @@ void changeScreenRemoveUntill(BuildContext context, Widget widget) {
       context, PageTransition(child: widget, duration: const Duration(milliseconds: 300), type: PageTransitionType.fade), (route) => false);
 }
 
-double appBarSpace = 40.0;
+double appBarSpace = 50.0;
 
 double fontSizeExtraSmall = 10;
 double fontSizeSmall = 12;

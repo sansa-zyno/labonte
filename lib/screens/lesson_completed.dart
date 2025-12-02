@@ -3,19 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/entitlement.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/models/review.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:provider/provider.dart';
 
 class LessonsCompleted extends StatefulWidget {
+  final bool isReview;
   final double totalScore;
   final Function({required BuildContext buildContext, double? score})? goToNext;
   final LessonData lessonData;
-  const LessonsCompleted({super.key, required this.totalScore, this.goToNext, required this.lessonData});
+  const LessonsCompleted({super.key, required this.isReview, required this.totalScore, this.goToNext, required this.lessonData});
 
   @override
   State<LessonsCompleted> createState() => _LessonsCompletedState();
@@ -70,6 +76,7 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
 
   @override
   Widget build(BuildContext context) {
+    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -80,14 +87,15 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
               SizedBox(height: appBarSpace),
               Image.asset('assets/images/gif2-nobg.gif', height: getSize(314, context)),
               SizedBox(height: getVerticalSize(15, context)),
-              widget.lessonData.exercises.isNotEmpty ? CustomText(text: 'Score: ${percentScore}%', size: 24) : SizedBox.shrink(),
-              widget.lessonData.exercises.isNotEmpty ? SizedBox(height: getVerticalSize(15, context)) : SizedBox.shrink(),
+              widget.lessonData.exercises.isNotEmpty ? buildResultCard() : const SizedBox.shrink(),
+              widget.lessonData.exercises.isNotEmpty ? SizedBox(height: getVerticalSize(15, context)) : const SizedBox.shrink(),
               Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Color(0xff5976BA), borderRadius: BorderRadius.circular(5)),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(0xff5976BA), borderRadius: BorderRadius.circular(5)),
                 child: CustomText(
                   text: 'You have successfully completed lesson ${widget.lessonData.lessonIndex}',
                   color: Colors.white,
+                  textAlign: TextAlign.center,
                 ),
               ),
               SizedBox(height: getVerticalSize(15, context)),
@@ -100,45 +108,59 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
                         height: getVerticalSize(1.4, context),
                       ),
                       children: [
-                        TextSpan(text: 'Your overall performance for this lesson is '),
                         TextSpan(
-                          style: TextStyle(color: percentScore <= 50 ? AppColors.red4 : AppColors.greenColor, fontWeight: FontWeight.bold),
-                          text: percentScore <= 25
-                              ? 'Very Poor. '
-                              : percentScore <= 50
-                                  ? 'Poor. '
-                                  : percentScore <= 75
-                                      ? 'Great. '
-                                      : 'Excellent. ',
+                          text: percentScore < 50
+                              ? 'You are getting there! Let\'s try again to improve your score.'
+                              : 'You are doing an amazing job, your hard work is really paying off.',
                         ),
-                        TextSpan(
-                            text: percentScore <= 25
-                                ? 'We have added this lesson to the review section.'
-                                : percentScore <= 50
-                                    ? 'We have added this lesson to the review section.'
-                                    : percentScore <= 75
-                                        ? 'Keep pushing.'
-                                        : '')
                       ])),
-              SizedBox(height: getVerticalSize(50, context)),
+              SizedBox(height: getVerticalSize(30, context)),
+              percentScore < 50
+                  ? CustomButton(
+                      width: getHorizontalSize(250, context),
+                      text: 'Repeat Lesson',
+                      textColor: AppColors.primaryColor,
+                      border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                      onpressed: () {
+                        changeScreenRemoveUntill(
+                            context,
+                            BottomNavbar(
+                              pageIndex: 1,
+                              newpage: DecisionScreen(
+                                isReview: widget.isReview,
+                                lessonIndex: widget.lessonData.lessonIndex,
+                                lessonData: widget.lessonData,
+                                subLessonIndex: 0,
+                                previousPageIndex: 1,
+                              ),
+                            ));
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              percentScore < 50 ? SizedBox(height: getVerticalSize(15, context)) : const SizedBox.shrink(),
               CustomButton(
                 text: 'Continue',
                 color: AppColors.buttonColor,
                 onpressed: () async {
-                  if (widget.lessonData.exercises.isNotEmpty && widget.goToNext != null) {
-                    widget.goToNext!(buildContext: context);
+                  if (entitlementProvider.entitlement == Entitlement.pro) {
+                    if (widget.lessonData.exercises.isNotEmpty && widget.goToNext != null) {
+                      widget.goToNext!(buildContext: context);
+                    } else {
+                      //Exercises is empty and goToNext is null
+                      changeScreenRemoveUntill(
+                          context,
+                          BottomNavbar(
+                            pageIndex: 1,
+                            newpage: DecisionScreen(
+                                isReview: widget.isReview,
+                                lessonIndex: widget.lessonData.lessonIndex + 1,
+                                lessonData: null, //important
+                                subLessonIndex: 0,
+                                previousPageIndex: 1),
+                          ));
+                    }
                   } else {
-                    //Exercises is empty and goToNext is null
-                    changeScreenRemoveUntill(
-                        context,
-                        BottomNavbar(
-                          pageIndex: 1,
-                          newpage: DecisionScreen(
-                              lessonIndex: widget.lessonData.lessonIndex + 1,
-                              lessonData: null, //important
-                              subLessonIndex: 0,
-                              previousPageIndex: 1),
-                        ));
+                    changeScreen(context, Subscription());
                   }
                 },
               ),
@@ -146,6 +168,50 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildResultCard() {
+    return Container(
+      width: 80,
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppColors.lightGrey3,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: double.infinity,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: percentScore < 50 ? Colors.red : Colors.green,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
+            child: CustomText(
+              text: 'Score',
+              color: Colors.white,
+              size: fontSizeSmall,
+              lineHeight: 1.0,
+            ),
+          ),
+          // Use Expanded to take the rest of the space and center text perfectly
+          Expanded(
+            child: Center(
+              child: CustomText(
+                text: '$percentScore%',
+                size: fontSizeBig,
+                lineHeight: 1.0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

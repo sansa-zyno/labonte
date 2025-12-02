@@ -5,30 +5,34 @@ import 'package:french_app/constants/app_constants.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/exercise_correction.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
-import 'package:french_app/screens/decision.dart';
-import 'package:french_app/screens/lesson_completed.dart';
-import 'package:french_app/services/database.dart';
+import 'package:french_app/screens/correction/matching_correction.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
 
 class MatchingType extends StatefulWidget {
+  final bool isReview;
   final DocumentSnapshot snapshot;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
   final double exerciseScore;
+  final List<double>? exerciseScoreTrackingList; //not used here
   const MatchingType({
     Key? key,
+    required this.isReview,
     required this.snapshot,
     required this.goToNext,
     required this.goToBack,
     required this.lessonData,
     required this.exerciseIndex,
     required this.exerciseScore,
+    required this.exerciseScoreTrackingList,
   }) : super(key: key);
 
   @override
@@ -209,34 +213,29 @@ class _MatchingTypeState extends State<MatchingType> {
                   text: 'Continue',
                   color: AppColors.buttonColor,
                   onpressed: () {
-                    checkAnswers().then((x) {
-                      double score = correctAnswerCount / questions.length;
-                      if (!textToSpeechProvider.loading) {
-                        textToSpeechProvider.stop().then((_) {
-                          if (widget.exerciseIndex + 1 >= widget.lessonData.exercises.length) {
-                            double totalScore = widget.exerciseScore + score;
-                            changeScreenReplacement(
-                                context,
-                                BottomNavbar(
-                                  pageIndex: 1,
-                                  newpage: LessonsCompleted(totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
-                                ));
-                            DatabaseService.updateLessonProgress(
-                              context: context,
-                              lessonIndex: widget.lessonData.lessonIndex.toString(),
-                              lessonData: widget.lessonData,
-                              currentSubLessonIndex: widget.lessonData.subLessons.length,
-                              currentExerciseIndex: widget.exerciseIndex + 1,
-                              totalLessonIndex: widget.lessonData.subLessons.length + widget.lessonData.exercises.length,
-                              score: totalScore,
-                              lastUpdateTime: DateTime.now(),
-                            );
-                          } else {
-                            widget.goToNext(buildContext: context, score: score);
-                          }
-                        });
-                      }
-                    });
+                    if (!textToSpeechProvider.loading) {
+                      textToSpeechProvider.stop().then((_) {
+                        ExerciseCorrection correction = ExerciseCorrection(
+                            id: widget.snapshot.id,
+                            lessonTitle: '${widget.snapshot['title']} - Corrections',
+                            lessonInstruction: widget.snapshot['instruction'],
+                            matching: Matching(questions: questions, englishOptions: englishOptions, userAnswers: userAnswers));
+                        changeScreenReplacement(
+                            context,
+                            BottomNavbar(
+                              pageIndex: 1,
+                              newpage: MatchingCorrection(
+                                isReview: widget.isReview,
+                                correction: correction,
+                                goToNext: widget.goToNext,
+                                lessonData: widget.lessonData,
+                                exerciseIndex: widget.exerciseIndex,
+                                exerciseScore: widget.exerciseScore,
+                                exerciseScoreTrackingList: widget.exerciseScoreTrackingList,
+                              ),
+                            ));
+                      });
+                    }
                   },
                 ),
               ),
@@ -244,31 +243,6 @@ class _MatchingTypeState extends State<MatchingType> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Future<void> checkAnswers() async {
-    int correct = 0;
-    for (int i = 0; i < questions.length; i++) {
-      final correctAnswer = questions[i]['english'];
-      int? selectedOptionIndex = userAnswers[i]; //Using the index because list would be iterated same order as in the listview
-      if (selectedOptionIndex != null) {
-        final userAnswer = englishOptions[selectedOptionIndex];
-        if (correctAnswer == userAnswer) {
-          correct++;
-        }
-      }
-    }
-    correctAnswerCount = correct;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text("Result"),
-        content: Text("You got $correct out of ${questions.length} correct."),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Continue"))],
       ),
     );
   }

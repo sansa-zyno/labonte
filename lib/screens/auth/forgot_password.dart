@@ -49,8 +49,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   ),
                   Image.asset(
                     AppImages.logo,
-                    width: getHorizontalSize(75, context),
-                    height: getVerticalSize(59, context),
+                    height: getSize(50, context),
                   ),
                   SizedBox(height: getVerticalSize(15, context)),
                   CustomText(text: 'Forgot Password', size: getFontSize(fontSizeBig, context), weight: FontWeight.bold),

@@ -2,5 +2,5 @@
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo-nobg.png"
+  image_path: "assets/images/logo.png"
   remove_alpha_ios: true

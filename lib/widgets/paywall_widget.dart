@@ -144,15 +144,20 @@ class _PaywallWidgetState extends State<PaywallWidget> {
               SizedBox(height: 8),
               Row(
                 children: [
-                  product.introductoryPrice != null
-                      ? CustomText(
-                          text: product.introductoryPrice!.priceString,
-                          size: getFontSize(fontSizeSmall, context),
-                          color: AppColors.blackColor2.withOpacity(0.6),
-                          textDecoration: TextDecoration.lineThrough,
-                        )
-                      : SizedBox.shrink(),
-                  product.introductoryPrice != null ? SizedBox(width: 5) : SizedBox.shrink(),
+                  if (product.introductoryPrice != null) ...[
+                    CustomText(
+                      text: product.introductoryPrice!.priceString,
+                      size: getFontSize(fontSizeSmall, context),
+                      color: AppColors.blackColor2.withOpacity(0.6),
+                    ),
+                    SizedBox(width: 5),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: getSize(10, context), // small arrow
+                      color: AppColors.blackColor2.withOpacity(0.5),
+                    ),
+                    SizedBox(width: 5),
+                  ],
                   CustomText(
                     text: product.priceString,
                     size: getFontSize(fontSizeSmall, context),

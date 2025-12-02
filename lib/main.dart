@@ -10,9 +10,38 @@ import 'package:french_app/provider/stt_provider.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/splash.dart';
+import 'package:french_app/services/local_storage.dart';
 import 'package:french_app/services/purchase_api.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+
+Future<void> clearDataOnUpdate() async {
+  try {
+    final localStorage = LocalStorage();
+    final packageInfo = await PackageInfo.fromPlatform();
+    final currentVersion = packageInfo.buildNumber;
+    //log('Current Version is: $currentVersion');
+    final lastVersion = await localStorage.getString('last_version');
+    if (lastVersion == null || lastVersion != currentVersion) {
+      // App is newly installed or updated — clear documents directory
+      final appDocDir = await getApplicationDocumentsDirectory();
+      if (appDocDir.existsSync()) {
+        appDocDir.deleteSync(recursive: true);
+      }
+      // Store the new version
+      await localStorage.setString('last_version', currentVersion);
+      //log('App updated. Cleared documents directory.');
+    } else {
+      //log('App version unchanged. No cleanup needed.');
+    }
+  } catch (e, stack) {
+    log('❌ Error in clearDataOnUpdate: $e');
+    log(stack.toString());
+    // You could also log this to a crash/analytics service if needed
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +52,7 @@ void main() async {
   } catch (e) {
     log(e.toString());
   }
+  await clearDataOnUpdate();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(const MyApp());
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_images.dart';
+import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -33,29 +34,36 @@ class ShowDialogWidget extends StatelessWidget {
             children: [
               image == null
                   ? Center(
-                      child: Image.asset(AppImages.logo, height: 50),
+                      child: Image.asset(AppImages.logo, height: getSize(50, context)),
                     )
                   : Center(
-                      child: Image.asset(image!, height: 100),
+                      child: Image.asset(image!, height: getSize(100, context)),
                     ),
               SizedBox(height: 15),
-              Center(
-                child: CustomText(
-                  text: titleText,
-                  fontFamily: GoogleFonts.roboto().fontFamily,
-                  weight: FontWeight.bold,
-                  textAlign: TextAlign.center,
-                  size: titleSize ?? 20,
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        text: titleText,
+                        fontFamily: GoogleFonts.roboto().fontFamily,
+                        weight: FontWeight.bold,
+                        textAlign: TextAlign.center,
+                        size: titleSize ?? 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 15),
+              /* SizedBox(height: 15),
               Center(
                 child: CustomText(
                   text: subText,
                   fontFamily: GoogleFonts.poppins().fontFamily,
                   size: subTitleSize ?? 16,
                 ),
-              )
+              )*/
             ],
           ),
         ),

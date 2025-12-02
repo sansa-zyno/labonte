@@ -14,6 +14,7 @@ import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:french_app/widgets/custom_textfield.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -59,8 +60,7 @@ class _SignUpState extends State<SignUp> {
                   ),
                   Image.asset(
                     AppImages.logo,
-                    width: getHorizontalSize(75, context),
-                    height: getVerticalSize(59, context),
+                    height: getSize(50, context),
                   ),
                   SizedBox(height: getVerticalSize(15, context)),
                   CustomText(
@@ -177,24 +177,32 @@ class _SignUpState extends State<SignUp> {
                         }
                         return null;
                       }),
-                  SizedBox(height: getVerticalSize(8, context)),
-                  Row(
-                    children: [
-                      Checkbox(
-                        visualDensity: VisualDensity(horizontal: -4),
-                        fillColor: const WidgetStatePropertyAll(AppColors.primaryColor),
-                        value: true,
-                        onChanged: (x) {},
-                      ),
-                      SizedBox(width: getHorizontalSize(5, context)),
-                      Expanded(
-                          child: CustomText(
-                        text: 'Receive newsletter and updates about itutor french products',
-                        size: getFontSize(fontSizeSmall, context),
-                      ))
-                    ],
-                  ),
                   SizedBox(height: getVerticalSize(30, context)),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: getFontSize(fontSizeSmall, context),
+                      ),
+                      children: [
+                        const TextSpan(text: "By signing up, you agree to our "),
+                        TextSpan(
+                          text: "Privacy Policy",
+                          style: TextStyle(
+                            color: AppColors.blueColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              // Navigate to your privacy policy screen or open URL
+                              await launchUrl(Uri.parse('https://labontelanguages.ca/privacy-policy/'));
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: getVerticalSize(15, context)),
                   isloading
                       ? const CircularProgressIndicator()
                       : CustomButton(

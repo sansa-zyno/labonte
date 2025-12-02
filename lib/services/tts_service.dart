@@ -246,11 +246,15 @@ class TextToSpeechService {
       } else {
         continue; // skip invalid entries
       }
-      if (type == 'image' && snapshot.id == '3') {
+      if (type == 'image' && lessonIndex == 1 && snapshot.id == '3') {
         //Dont correct 'I' for 'I-Igname' screen.
         final matchY = RegExp(r'\bY\b');
         frenchWord = frenchWord.replaceAll(matchY, 'Igrek');
+      } else if (type == 'list' && lessonIndex == 1 && snapshot.id == '2') {
+        //Dont correct 'I' for 'Sabrina' etc.
+        frenchWord = frenchWord;
       } else {
+        //Correct 'I'
         final matchI = RegExp(r'\bI\b', caseSensitive: false);
         frenchWord = frenchWord.replaceAll(matchI, 'aï');
       }

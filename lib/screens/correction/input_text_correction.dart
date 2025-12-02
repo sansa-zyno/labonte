@@ -5,6 +5,7 @@ import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/models/exercise_correction.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
@@ -17,6 +18,7 @@ import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
 
 class InputTextCorrection extends StatefulWidget {
+  final bool isReview;
   final ExerciseCorrection correction;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final LessonData lessonData;
@@ -24,7 +26,8 @@ class InputTextCorrection extends StatefulWidget {
   final double exerciseScore;
   final List<double>? exerciseScoreTrackingList;
   const InputTextCorrection(
-      {required this.correction,
+      {required this.isReview,
+      required this.correction,
       required this.goToNext,
       required this.lessonData,
       required this.exerciseIndex,
@@ -66,7 +69,9 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
     oneTextViewController = widget.correction.inputText!.oneTextViewController;
     //
     controllers = widget.correction.inputText!.controllers;
-    getAnswers();
+    getAnswers().then((x) {
+      _calculateCorrectAnswers();
+    });
   }
 
   @override
@@ -93,6 +98,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
             BottomNavbar(
                 pageIndex: 1,
                 newpage: DecisionScreen(
+                    isReview: widget.isReview,
                     lessonIndex: widget.lessonData.lessonIndex,
                     lessonData: widget.lessonData,
                     subLessonIndex: widget.lessonData.subLessons.length,
@@ -198,9 +204,6 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                   itemCount: data?.length ?? 0,
                                   shrinkWrap: true,
                                   itemBuilder: (ctx, index) {
-                                    if (isListOfInputTypeCorrect(controllers[index].text, answers[index])) {
-                                      correctAnswerCount++;
-                                    }
                                     bool answerExistInDB = data![index]['answer'].toString().isNotEmpty;
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,7 +363,11 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                     context,
                                     BottomNavbar(
                                       pageIndex: 1,
-                                      newpage: LessonsCompleted(totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
+                                      newpage: LessonsCompleted(
+                                          isReview: widget.isReview,
+                                          totalScore: totalScore,
+                                          goToNext: widget.goToNext,
+                                          lessonData: widget.lessonData),
                                     ));
                                 DatabaseService.updateLessonProgress(
                                   context: context,
@@ -388,20 +395,31 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
     );
   }
 
+  void _calculateCorrectAnswers() {
+    correctAnswerCount = 0;
+    if (widget.correction.inputText!.type == "list-of-input-text") {
+      for (int i = 0; i < controllers.length; i++) {
+        if (isListOfInputTypeCorrect(controllers[i].text, answers[i])) {
+          correctAnswerCount++;
+        }
+      }
+    }
+  }
+
   bool isListOfInputTypeCorrect(String userInput, String answer) {
-    //|| answer.toLowerCase().contains(userInput.toLowerCase().trim())
-    if (answer.isEmpty) {
+    if (userInput.isEmpty || answer.isEmpty) {
       return false;
     } else {
       //Case 1: if answer exist in db, it can be one text or alternatives seperated by a comma
       //Case 2: if answer doesn't exist in db, then is AI answer
       answer = answer.replaceAll('’', '\'');
       userInput = userInput.replaceAll('’', '\'');
-      return answer.toLowerCase().split(',').contains(userInput.toLowerCase().trim());
+      return answer.toLowerCase().split(',').contains(userInput.toLowerCase().trim()) ||
+          answer.toLowerCase().contains(userInput.toLowerCase().trim());
     }
   }
 
-  getAnswers() async {
+  Future<void> getAnswers() async {
     try {
       if (widget.correction.inputText!.type == 'list-of-input-text') {
         //case 1

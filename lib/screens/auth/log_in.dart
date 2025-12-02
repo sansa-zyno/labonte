@@ -6,18 +6,17 @@ import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/modals/alert.dart';
-import 'package:french_app/models/entitlement.dart';
 import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/auth/forgot_password.dart';
 import 'package:french_app/screens/auth/sign_up.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
-import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/auth.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:french_app/widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -28,16 +27,19 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   late AppProvider appProvider;
+  late EntitlementProvider entitlementProvider;
   final _formKey = GlobalKey<FormState>();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   bool isloading = false;
   bool obscureText = false;
+
   void initState() {
     // TODO: implement initState
     super.initState();
     appProvider = Provider.of<AppProvider>(context, listen: false);
+    entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
   }
 
   @override
@@ -65,8 +67,7 @@ class _LoginState extends State<Login> {
                   ),
                   Image.asset(
                     AppImages.logo,
-                    width: getHorizontalSize(75, context),
-                    height: getVerticalSize(59, context),
+                    height: getSize(50, context),
                   ),
                   SizedBox(height: getVerticalSize(15, context)),
                   CustomText(
@@ -170,7 +171,6 @@ class _LoginState extends State<Login> {
   }
 
   signIn() async {
-    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
     try {
       isloading = true;
       setState(() {});
@@ -181,11 +181,10 @@ class _LoginState extends State<Login> {
         await appProvider.getCurrentUserModel();
         await appProvider.getContinueLessonData();
         if (appProvider.userModel != null) {
-          if (entitlementProvider.entitlement == Entitlement.pro) {
-            changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
-          } else {
-            changeScreenRemoveUntill(context, Subscription(userModel: appProvider.userModel!));
-          }
+          //log("Firebase User Id: ${appProvider.userModel!.id}");
+          await Purchases.logIn(appProvider.userModel!.id);
+          await entitlementProvider.init();
+          changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
         } else {
           showDialog(
             context: context,

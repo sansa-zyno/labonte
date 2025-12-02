@@ -6,9 +6,9 @@ import 'package:french_app/constants/app_constants.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +50,7 @@ class _HTMLPageState extends State<HTMLPage> {
           if (widget.snapshot.id != '0') {
             widget.goToBack(buildContext: context);
           } else {
-            //Fix for when exerciseIndex==0(Home screen) and  currentSublessonIndex==0 and gotoBack is pressed
+            //Fix for when exerciseIndex==0(From Home screen) and  currentSublessonIndex==0 and gotoBack is pressed
             changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
           }
         } else {
@@ -174,7 +174,6 @@ class _HTMLPageState extends State<HTMLPage> {
                           color: AppColors.primaryColor,
                         ),
                         onpressed: () {
-                          // changeScreen(context, DecisionScreen(id: '${int.parse(widget.snapshot.id) + 1}', previousPageIndex: 1));
                           widget.goToNext(buildContext: context);
                         },
                       ),

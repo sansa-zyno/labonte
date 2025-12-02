@@ -5,9 +5,9 @@ import 'package:french_app/constants/app_constants.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
@@ -15,20 +15,24 @@ import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
 
 class PuzzleType extends StatefulWidget {
+  final bool isReview;
   final DocumentSnapshot snapshot;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final Function({required BuildContext buildContext}) goToBack;
   final LessonData lessonData;
   final int exerciseIndex;
   final double exerciseScore;
+  final List<double>? exerciseScoreTrackingList; //not used here
   const PuzzleType({
     Key? key,
+    required this.isReview,
     required this.snapshot,
     required this.goToNext,
     required this.goToBack,
     required this.lessonData,
     required this.exerciseIndex,
     required this.exerciseScore,
+    required this.exerciseScoreTrackingList,
   }) : super(key: key);
   @override
   State<PuzzleType> createState() => _TablePuzzleTypeState();
@@ -248,7 +252,8 @@ class _TablePuzzleTypeState extends State<PuzzleType> {
                                 context,
                                 BottomNavbar(
                                   pageIndex: 1,
-                                  newpage: LessonsCompleted(totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
+                                  newpage: LessonsCompleted(
+                                      isReview: widget.isReview, totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
                                 ));
                             DatabaseService.updateLessonProgress(
                               context: context,
@@ -284,14 +289,7 @@ class _TablePuzzleTypeState extends State<PuzzleType> {
       builder: (context) => AlertDialog(
         title: Text('Result'),
         content: Text("You got ${foundWords.length} out of ${wordsToFind.length} correct."),
-        actions: [
-          TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                widget.goToNext(buildContext: context);
-              },
-              child: Text('Continue')),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("Continue"))],
       ),
     );
   }

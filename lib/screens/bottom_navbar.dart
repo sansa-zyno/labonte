@@ -4,12 +4,14 @@ import 'package:french_app/constants/app_icons.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/home.dart';
-import 'package:french_app/screens/practiceI_with_AI.dart';
+import 'package:french_app/screens/practice_with_ai.dart';
 import 'package:french_app/screens/profile/profile.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:upgrader/upgrader.dart';
 
 // ignore: must_be_immutable
@@ -67,7 +69,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
 
     _home = Home();
-    _decisionScreen = DecisionScreen(previousPageIndex: 1, lessonData: null, lessonIndex: 1, subLessonIndex: 0);
+    _decisionScreen = DecisionScreen(isReview: false, previousPageIndex: 1, lessonData: null, lessonIndex: 1, subLessonIndex: 0);
     _practiceiWithAI = PracticeiWithAI();
     _profile = Profile();
 
@@ -83,12 +85,14 @@ class _BottomNavbarState extends State<BottomNavbar> {
 
   @override
   Widget build(BuildContext context) {
+    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
     return Scaffold(
         key: _scaffoldKey,
         //backgroundColor: Color(0xff0e6dfd),
         //drawer: Menu(),
         body: UpgradeAlert(
           upgrader: Upgrader(),
+          // ignore: prefer_if_null_operators
           child: widget.newpage == null ? _showPage : widget.newpage,
         ),
         bottomNavigationBar: BottomNavigationBar(
@@ -152,6 +156,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
               await textToSpeechProvider.stop(); //To stop audio player when bottom navigating away from lesson screen
               if (appProvider.continueLessonData != null && tappedIndex == 1) {
                 _decisionScreen = DecisionScreen(
+                    isReview: appProvider.isReview,
                     previousPageIndex: 1,
                     lessonData: appProvider.continueLessonData,
                     lessonIndex: appProvider.continueLessonData!.lessonIndex,
@@ -164,6 +169,19 @@ class _BottomNavbarState extends State<BottomNavbar> {
                 _showPage = _pageChooser(pageIndex);
                 widget.newpage = null;
               });
+              //////////////////////////////////////////////////////////
+              String? expiryTime = entitlementProvider.expiryTimeCalc();
+              if (expiryTime == null) {
+                //Subcription has expired
+                //Clear the cache immediately and fetch new customerInfo from network
+                await Purchases.invalidateCustomerInfoCache();
+                await Purchases.getCustomerInfo();
+              } else {
+                //Call this in your app regularly.
+                //It caches CustomerInfo but only fetch new customerInfo from network after every 5mins
+                //Listeners will be fired only after every 5 minutes
+                await Purchases.getCustomerInfo();
+              }
             }));
   }
 }

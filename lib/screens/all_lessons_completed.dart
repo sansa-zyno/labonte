@@ -5,11 +5,14 @@ import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/entitlement.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/models/lesson_progress.dart';
 import 'package:french_app/provider/app_provider.dart';
+import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/certificate.dart';
-import 'package:french_app/screens/decision.dart';
+import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -64,6 +67,7 @@ class _AllLessonsCompletedState extends State<AllLessonsCompleted> {
   @override
   Widget build(BuildContext context) {
     AppProvider appProvider = Provider.of<AppProvider>(context);
+    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
     return Scaffold(
       body: lessonsToRetake == null
           ? Center(child: CircularProgressIndicator())
@@ -118,7 +122,11 @@ class _AllLessonsCompletedState extends State<AllLessonsCompleted> {
                             text: 'View Certificate',
                             color: AppColors.buttonColor,
                             onpressed: () {
-                              changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                              if (entitlementProvider.entitlement == Entitlement.pro) {
+                                changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                              } else {
+                                changeScreen(context, Subscription());
+                              }
                             },
                           )
                         : SizedBox.shrink(),

@@ -49,11 +49,8 @@ class CustomButton extends StatelessWidget {
           children: [
             Text(
               text,
-              style: TextStyle(
-                fontSize: textSize ?? getFontSize(fontSizeMedium, context),
-                color: textColor,
-                fontWeight: FontWeight.w400,
-              ),
+              style:
+                  TextStyle(fontSize: textSize ?? getFontSize(fontSizeMedium, context), color: textColor, fontWeight: FontWeight.w400, height: 1.0),
             ),
             if (icon != null) const SizedBox(width: 4),
             if (icon != null) icon!,

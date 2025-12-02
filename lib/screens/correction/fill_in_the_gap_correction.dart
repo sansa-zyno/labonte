@@ -1,4 +1,4 @@
-import 'dart:developer';
+//import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_constants.dart';
@@ -6,17 +6,18 @@ import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/models/exercise_correction.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/services/database.dart';
-import 'package:french_app/services/gemini_service.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
 
 class FillInTheGapCorrection extends StatefulWidget {
+  final bool isReview;
   final ExerciseCorrection correction;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final LessonData lessonData;
@@ -24,7 +25,8 @@ class FillInTheGapCorrection extends StatefulWidget {
   final double exerciseScore;
   final List<double>? exerciseScoreTrackingList;
   const FillInTheGapCorrection(
-      {required this.correction,
+      {required this.isReview,
+      required this.correction,
       required this.goToNext,
       required this.lessonData,
       required this.exerciseIndex,
@@ -74,13 +76,14 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
     controllers = widget.correction.fillInTheGap!.controllers;
     //
     answers = widget.correction.fillInTheGap!.answers;
-    getAIAnswersForEmptyAnswersInDB();
+    //
+    _calculateCorrectAnswers();
   }
 
   @override
   void dispose() {
     // Clean up all controllers to prevent memory leaks
-    log('dispose() called');
+    //log('dispose() called');
     for (var row in wordAllControllers) {
       for (var controller in row) {
         controller.dispose();
@@ -104,8 +107,6 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
         maxLength: 1,
         textAlign: TextAlign.center,
         decoration: _textFieldDecoration1,
-        //onChanged: (value) => _handleTextChange(value, rowIndex, charIndex),
-        //textInputAction: charIndex < wordAllControllers[rowIndex].length - 1 ? TextInputAction.next : TextInputAction.done,
       ),
     );
   }
@@ -123,6 +124,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
             BottomNavbar(
                 pageIndex: 1,
                 newpage: DecisionScreen(
+                    isReview: widget.isReview,
                     lessonIndex: widget.lessonData.lessonIndex,
                     lessonData: widget.lessonData,
                     subLessonIndex: widget.lessonData.subLessons.length,
@@ -202,9 +204,6 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                   for (TextEditingController controller in wordAllControllers[rowIndex]) {
                                     text = text + controller.text;
                                   }
-                                  if (isWordAllTypeCorrect(text, answers[rowIndex])) {
-                                    correctAnswerCount++;
-                                  }
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                                     child: Column(
@@ -270,7 +269,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                   //
                                   RegExp blankRegex = RegExp(r'(\b\w’)?\s*_'); // capture optional prefix like m’, s’
                                   Iterable<RegExpMatch> matches = blankRegex.allMatches(text);
-                                  bool answerExistInDB = widget.correction.fillInTheGap!.answers[index].isNotEmpty;
+                                  //bool answerExistInDB = widget.correction.fillInTheGap!.answers[index].isNotEmpty;
                                   text.splitMapJoin(
                                     RegExp(r'_+'),
                                     onMatch: (m) {
@@ -289,17 +288,13 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                           child: SizedBox(
                                               height: 20,
                                               width: (widget.correction.fillInTheGap!.type.contains('sentence')
-                                                  ? !answerExistInDB
-                                                      ? 100
-                                                      : ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
+                                                  ? ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
                                                   : 25.0),
                                               child: TextField(
                                                   readOnly: true,
                                                   controller: controllers[index][controllerIndex],
                                                   maxLength: widget.correction.fillInTheGap!.type.contains('sentence')
-                                                      ? !answerExistInDB
-                                                          ? null
-                                                          : answers[index].split(',')[controllerIndex].length + 2
+                                                      ? answers[index].split(',')[controllerIndex].length + 2
                                                       : 1,
                                                   textAlign: widget.correction.fillInTheGap!.type.contains('sentence')
                                                       ? prefix.isNotEmpty
@@ -318,20 +313,6 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                       return '';
                                     },
                                   );
-
-                                  if (widget.correction.fillInTheGap!.type.contains('word-part') &&
-                                      isWordPartTypeCorrect(finalText, answers[index])) {
-                                    correctAnswerCount++;
-                                  } else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
-                                      !answers[index].contains('|') &&
-                                      isSentenceTypeCorrect(listOfUserInputs, answers[index])) {
-                                    correctAnswerCount++;
-                                  } else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
-                                      answers[index].contains('|') &&
-                                      isSentenceTypeCorrect(listOfUserInputs, answers[index])) {
-                                    correctAnswerCount++;
-                                  }
-
                                   return Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -366,14 +347,9 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                                 isWordPartTypeCorrect(finalText, answers[index]))
                                               Icon(Icons.check, color: Colors.green)
                                             else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
-                                                !answers[index].contains('|') &&
                                                 isSentenceTypeCorrect(listOfUserInputs, answers[index]))
                                               Icon(Icons.check, color: Colors.green)
-                                            else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
-                                                answers[index].contains('|') &&
-                                                isSentenceTypeCorrect(listOfUserInputs, answers[index]))
-                                              Icon(Icons.check, color: Colors.green)
-                                            else if (answerExistInDB)
+                                            else
                                               Icon(Icons.cancel, color: AppColors.red)
                                           ],
                                         ),
@@ -384,41 +360,18 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                               child: Row(children: [
                                                 CustomText(text: 'Correct answer is ', color: Colors.black.withOpacity(0.8), weight: FontWeight.w500),
                                                 CustomText(text: answers[index], color: Colors.green, weight: FontWeight.w900)
-                                              ])),
-                                        if (answerExistInDB &&
-                                            widget.correction.fillInTheGap!.type.contains('sentence') &&
-                                            !answers[index].contains('|') &&
+                                              ]))
+                                        else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
                                             !isSentenceTypeCorrect(listOfUserInputs, answers[index]))
                                           Padding(
                                               padding: const EdgeInsets.only(left: 5, top: 8),
                                               child: Row(children: [
                                                 CustomText(text: 'Correct answer is ', color: Colors.black.withOpacity(0.8), weight: FontWeight.w500),
-                                                CustomText(text: answers[index], color: Colors.green, weight: FontWeight.w900)
+                                                CustomText(
+                                                    text: !answers[index].contains('|') ? answers[index] : answers[index].split('|')[0],
+                                                    color: Colors.green,
+                                                    weight: FontWeight.w900)
                                               ])),
-                                        if (answerExistInDB &&
-                                            widget.correction.fillInTheGap!.type.contains('sentence') &&
-                                            answers[index].contains('|') &&
-                                            !isSentenceTypeCorrect(listOfUserInputs, answers[index]))
-                                          Padding(
-                                              padding: const EdgeInsets.only(left: 5, top: 8),
-                                              child: Row(children: [
-                                                CustomText(text: 'Correct answer is ', color: Colors.black.withOpacity(0.8), weight: FontWeight.w500),
-                                                CustomText(text: answers[index].split('|')[0], color: Colors.green, weight: FontWeight.w900)
-                                              ])),
-                                        if (!answerExistInDB && !isSentenceTypeCorrect(listOfUserInputs, answers[index]))
-                                          Padding(
-                                            padding: const EdgeInsets.only(left: 5, top: 8),
-                                            child: Row(children: [
-                                              CustomText(text: 'AI Feedback: ', color: AppColors.yellow2, weight: FontWeight.bold),
-                                              SizedBox(width: 15),
-                                              Expanded(
-                                                  child: CustomText(
-                                                text: answers.elementAtOrNull(index) != null ? answers[index].trim() : '',
-                                                color: Colors.green,
-                                                weight: FontWeight.w900,
-                                              ))
-                                            ]),
-                                          )
                                       ]));
                                 },
                                 separatorBuilder: (ctx, index) => const Divider(color: AppColors.lightGrey3, height: 8.0))),
@@ -443,7 +396,11 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                     context,
                                     BottomNavbar(
                                       pageIndex: 1,
-                                      newpage: LessonsCompleted(totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
+                                      newpage: LessonsCompleted(
+                                          isReview: widget.isReview,
+                                          totalScore: totalScore,
+                                          goToNext: widget.goToNext,
+                                          lessonData: widget.lessonData),
                                     ));
                                 DatabaseService.updateLessonProgress(
                                   context: context,
@@ -471,6 +428,56 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
     );
   }
 
+  void _calculateCorrectAnswers() {
+    correctAnswerCount = 0;
+
+    if (widget.correction.fillInTheGap!.type.contains('word-all')) {
+      for (int i = 0; i < wordAllControllers.length; i++) {
+        String combined = wordAllControllers[i].map((c) => c.text).join();
+        if (isWordAllTypeCorrect(combined, answers[i])) {
+          correctAnswerCount++;
+        }
+      }
+    } else {
+      for (int index = 0; index < questions.length; index++) {
+        // Same logic as before, but only run once
+        // Build finalText, listOfUserInputs, correctText
+        String text = questions[index];
+        int controllerIndex = 0;
+        String finalText = ''; //for word-part
+        List<String> listOfUserInputs = []; //for sentence
+        RegExp blankRegex = RegExp(r'(\b\w’)?\s*_'); // capture optional prefix like m’, s’
+        Iterable<RegExpMatch> matches = blankRegex.allMatches(text);
+
+        text.splitMapJoin(
+          RegExp(r'_+'),
+          onMatch: (m) {
+            //final blanks = m.group(0)!.length;
+            String prefix = matches.toList()[controllerIndex].group(1) ?? '';
+            if (widget.correction.fillInTheGap!.type.contains('sentence')) {
+              //.trim() to fix extra spaces issue
+              listOfUserInputs.add('$prefix${controllers[index][controllerIndex].text.trim()}'.toLowerCase());
+            } else {
+              finalText = finalText + controllers[index][controllerIndex].text;
+            }
+            controllerIndex = controllerIndex + 1;
+            return '';
+          },
+          onNonMatch: (text) {
+            finalText = finalText + text;
+            return '';
+          },
+        );
+        // Then:
+        if (widget.correction.fillInTheGap!.type.contains('word-part') && isWordPartTypeCorrect(finalText, answers[index])) {
+          correctAnswerCount++;
+        } else if (widget.correction.fillInTheGap!.type.contains('sentence') && isSentenceTypeCorrect(listOfUserInputs, answers[index])) {
+          correctAnswerCount++;
+        }
+      }
+    }
+  }
+
   bool isWordAllTypeCorrect(String userInput, String answer) {
     return userInput.toLowerCase() == answer.toLowerCase();
   }
@@ -484,19 +491,18 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
     if (answer.isEmpty) {
       return false;
     } else if (!answer.contains('|')) {
-      //|| answer.toLowerCase().contains(listOfUserInputs.join(',').toLowerCase().trim())
       answer = answer.replaceAll('’', '\'');
       String joinedUserInputs = listOfUserInputs.join(',').replaceAll('’', '\'');
       return answer.toLowerCase() == joinedUserInputs;
     } else {
-      //Fix for wrong answers due to hyphen or arrangement
+      //Fix for wrong answers due to alternative answers or arrangement
       answer = answer.replaceAll('’', '\'');
       String joinedUserInputs = listOfUserInputs.join(',').replaceAll('’', '\'');
       return answer.toLowerCase().split('|').any((e) => joinedUserInputs == e);
     }
   }
 
-  getAIAnswersForEmptyAnswersInDB() async {
+  /*getAIAnswersForEmptyAnswersInDB() async {
     RegExp blankRegex = RegExp(r'(\b\w’)?\s*_'); // capture optional prefix like m’, s’
     try {
       if (widget.correction.fillInTheGap!.type.contains('sentence')) {
@@ -548,5 +554,5 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
         isLoading = false;
       });
     }
-  }
+  }*/
 }

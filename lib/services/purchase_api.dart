@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -6,8 +7,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 class PurchaseApi {
   static Future<void> init() async {
-    await Purchases.setDebugLogsEnabled(true);
-
+    //await Purchases.setLogLevel(LogLevel.info);
     late PurchasesConfiguration configuration;
     if (Platform.isAndroid) {
       configuration = PurchasesConfiguration(dotenv.env['REVENUECAT_PROJECT_GOOGLE_API_KEY'] ?? '');
@@ -26,14 +26,15 @@ class PurchaseApi {
       } else {
         return offerings.all.values.toList();
       }
-    } on PlatformException catch (_) {
+    } on PlatformException catch (e) {
+      log(e.toString());
       return [];
     }
   }
 
   static Future<bool> purchasePackage(Package package) async {
     try {
-      await Purchases.purchasePackage(package);
+      await Purchases.purchase(PurchaseParams.package(package));
       return true;
     } catch (e) {
       return false;

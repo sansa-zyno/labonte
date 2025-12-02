@@ -4,6 +4,7 @@ import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
 import 'package:french_app/models/exercise_correction.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
@@ -14,6 +15,7 @@ import 'package:french_app/widgets/custom_text.dart';
 import 'package:provider/provider.dart';
 
 class ReadingCorrection extends StatefulWidget {
+  final bool isReview;
   final ExerciseCorrection correction;
   final Function({required BuildContext buildContext, double? score}) goToNext;
   final LessonData lessonData;
@@ -22,6 +24,7 @@ class ReadingCorrection extends StatefulWidget {
   final List<double>? exerciseScoreTrackingList;
   const ReadingCorrection({
     super.key,
+    required this.isReview,
     required this.correction,
     required this.goToNext,
     required this.lessonData,
@@ -118,6 +121,7 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
             BottomNavbar(
                 pageIndex: 1,
                 newpage: DecisionScreen(
+                    isReview: widget.isReview,
                     lessonIndex: widget.lessonData.lessonIndex,
                     lessonData: widget.lessonData,
                     subLessonIndex: widget.lessonData.subLessons.length,
@@ -216,7 +220,8 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
                               context,
                               BottomNavbar(
                                 pageIndex: 1,
-                                newpage: LessonsCompleted(totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
+                                newpage: LessonsCompleted(
+                                    isReview: widget.isReview, totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
                               ));
                           DatabaseService.updateLessonProgress(
                             context: context,

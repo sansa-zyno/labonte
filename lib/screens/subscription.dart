@@ -4,7 +4,6 @@ import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
-import 'package:french_app/models/user.dart';
 import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/services/purchase_api.dart';
@@ -14,35 +13,38 @@ import 'package:french_app/widgets/paywall_widget.dart';
 import 'package:provider/provider.dart';
 
 class Subscription extends StatefulWidget {
-  final UserModel userModel;
-  const Subscription({required this.userModel, super.key});
+  const Subscription({super.key});
 
   @override
   State<Subscription> createState() => _SubscriptionState();
 }
 
 class _SubscriptionState extends State<Subscription> {
+  bool canGoBack = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      canGoBack = Navigator.canPop(context);
+      setState(() {});
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    bool canGoback = Navigator.canPop(context);
     return AnnotatedRegion(
       value: const SystemUiOverlayStyle(statusBarColor: AppColors.whiteColor1, systemNavigationBarColor: AppColors.whiteColor1),
       child: Scaffold(
-        /*appBar: AppBar(
+        appBar: AppBar(
           leading: const SizedBox(),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           toolbarHeight: 0,
-        ),*/
+        ),
         body: Column(
           children: [
-            SizedBox(height: getVerticalSize(70, context)),
+            SizedBox(height: getVerticalSize(30, context)),
             Stack(
               children: [
                 Image.asset(
@@ -54,20 +56,20 @@ class _SubscriptionState extends State<Subscription> {
                 Positioned(left: 150, child: Image.asset(AppImages.bonjour)),
                 Positioned(right: 0, top: -5, child: Image.asset(AppImages.book)),
                 Positioned(right: 0, bottom: 50, child: Image.asset(AppImages.stars)),
-                Positioned(
-                  left: 15,
-                  child: InkWell(
-                    onTap: () {
-                      if (canGoback) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Icon(Icons.arrow_back),
-                    ),
-                  ),
-                ),
+                canGoBack
+                    ? Positioned(
+                        left: 15,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Icon(Icons.arrow_back),
+                          ),
+                        ),
+                      )
+                    : SizedBox.shrink(),
               ],
             ),
             SizedBox(height: getVerticalSize(15, context)),
@@ -76,7 +78,7 @@ class _SubscriptionState extends State<Subscription> {
               child: Column(
                 children: [
                   CustomText(
-                    text: 'Start Your Free Trial - Learn French With No Risk',
+                    text: 'Unlock your full French learning experience!',
                     size: getFontSize(20, context),
                     weight: FontWeight.bold,
                   ),
@@ -86,53 +88,80 @@ class _SubscriptionState extends State<Subscription> {
                     child: Column(
                       children: [
                         Row(
-                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             Checkbox(
-                              visualDensity: VisualDensity(horizontal: -4),
+                              visualDensity: VisualDensity(horizontal: -4, vertical: -4),
                               fillColor: WidgetStatePropertyAll(Colors.black),
                               value: true,
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(
-                                child: CustomText(
-                              text: 'Access to 5 French lessons',
-                            ))
+                            Expanded(child: CustomText(text: '3-day free trial with full features', lineHeight: 1.2, size: 13))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
                         Row(
-                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             Checkbox(
-                              visualDensity: VisualDensity(horizontal: -4),
+                              visualDensity: VisualDensity(horizontal: -4, vertical: -4),
                               fillColor: WidgetStatePropertyAll(Colors.black),
                               value: true,
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(
-                                child: CustomText(
-                              text: '3-day free trial with full features',
-                            ))
+                            Expanded(child: CustomText(text: '30 interactive lessons (Beginner to Advanced)', lineHeight: 1.2, size: 13))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
                         Row(
-                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             Checkbox(
-                              visualDensity: VisualDensity(horizontal: -4),
+                              visualDensity: VisualDensity(horizontal: -4, vertical: -4),
                               fillColor: WidgetStatePropertyAll(Colors.black),
                               value: true,
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(
-                                child: CustomText(
-                              text: 'Cancel anytime within the trial period at no cost',
-                            ))
+                            Expanded(child: CustomText(text: 'AI-powered tutor to answer your questions instantly', lineHeight: 1.2, size: 13))
+                          ],
+                        ),
+                        SizedBox(height: getVerticalSize(5, context)),
+                        Row(
+                          children: [
+                            Checkbox(
+                              visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                              fillColor: WidgetStatePropertyAll(Colors.black),
+                              value: true,
+                              onChanged: (x) {},
+                            ),
+                            SizedBox(height: getHorizontalSize(5, context)),
+                            Expanded(child: CustomText(text: 'Live tutor sessions for real-time speaking practice', lineHeight: 1.2, size: 13))
+                          ],
+                        ),
+                        SizedBox(height: getVerticalSize(5, context)),
+                        Row(
+                          children: [
+                            Checkbox(
+                              visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                              fillColor: WidgetStatePropertyAll(Colors.black),
+                              value: true,
+                              onChanged: (x) {},
+                            ),
+                            SizedBox(height: getHorizontalSize(5, context)),
+                            Expanded(child: CustomText(text: 'Certificate of Completion at the end of the course', lineHeight: 1.2, size: 13))
+                          ],
+                        ),
+                        SizedBox(height: getVerticalSize(5, context)),
+                        Row(
+                          children: [
+                            Checkbox(
+                              visualDensity: VisualDensity(horizontal: -4, vertical: -4),
+                              fillColor: WidgetStatePropertyAll(Colors.black),
+                              value: true,
+                              onChanged: (x) {},
+                            ),
+                            SizedBox(height: getHorizontalSize(5, context)),
+                            Expanded(child: CustomText(text: 'Cancel anytime within the trial period at no cost', lineHeight: 1.2, size: 13))
                           ],
                         ),
                       ],
@@ -140,40 +169,10 @@ class _SubscriptionState extends State<Subscription> {
                   ),
                   SizedBox(height: getVerticalSize(30, context)),
                   CustomButton(
-                    width: getHorizontalSize(200, context),
-                    text: 'Start your 3-days free trial',
+                    text: 'Choose a Plan',
                     color: AppColors.buttonColor,
                     onpressed: () async {
                       fetchOffers(context);
-                      /*List<Package> packagess = DummyData.packagess;
-                      showModalBottomSheet(
-                          context: context,
-                          isDismissible: false,
-                          barrierColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24))),
-                          builder: (bottomSheetContext) => PaywallWidget(
-                              title: "Get full access",
-                              description: "",
-                              packages: packagess,
-                              onClickedPackage: (package) async {
-                                // await PurchaseApi.purchasePackage(package);
-
-                                // Close bottom sheet first
-                                Navigator.pop(bottomSheetContext);
-
-                                // Delay a frame to let bottom sheet fully dismiss
-                                await Future.delayed(Duration(milliseconds: 100));
-
-                                // Access parent context (not bottomSheetContext) safely
-                                final appProvider = Provider.of<AppProvider>(context, listen: false);
-
-                                await appProvider.getCurrentUserModel();
-                                await appProvider.getContinueLessonData();
-
-                                if (context.mounted) {
-                                  changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
-                                }
-                              }));*/
                     },
                   ),
                 ],
@@ -213,7 +212,11 @@ class _SubscriptionState extends State<Subscription> {
                   await appProvider.getContinueLessonData();
 
                   if (context.mounted) {
-                    changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
+                    if (canGoBack) {
+                      Navigator.pop(context);
+                    } else {
+                      changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
+                    }
                   }
                 }
               }));

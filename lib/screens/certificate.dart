@@ -197,8 +197,8 @@ class _CertificateScreenState extends State<CertificateScreen> {
               text: 'Rate our app',
               textColor: AppColors.primaryColor,
               border: Border.all(color: AppColors.primaryColor, width: 1.5),
-              onpressed: () async {
-                await requestReview();
+              onpressed: () {
+                requestReview();
               },
             ),
             SizedBox(height: getVerticalSize(15, context)),
@@ -219,10 +219,10 @@ class _CertificateScreenState extends State<CertificateScreen> {
   Future<void> requestReview() async {
     final InAppReview inAppReview = InAppReview.instance;
     if (await inAppReview.isAvailable()) {
-      inAppReview.requestReview(); // Shows the native dialog
+      await inAppReview.requestReview(); // Shows the native dialog
     } else {
       // Optionally open the store listing if in-app review isn't available
-      inAppReview.openStoreListing(appStoreId: 'your_ios_app_id', microsoftStoreId: 'com.labonte.www');
+      await inAppReview.openStoreListing(appStoreId: '6755325259', microsoftStoreId: 'com.labonte.www');
     }
   }
 }

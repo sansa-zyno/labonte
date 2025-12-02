@@ -1,4 +1,3 @@
-//import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:french_app/helpers/file_recorder.dart';
@@ -24,16 +23,13 @@ class SpeechToTextService {
 
   static Future<List<int>?> getAudioStream() async {
     // Record 60 seconds of audio
-    final recorder = await FileRecorder.create(); //initialize
     if (!await Permission.microphone.request().isGranted) {
       // Show message: "Microphone permission is required"
       return null;
     }
-    //final hasPermission = await Permission.microphone.isGranted;
-    //log("Microphone permission granted: $hasPermission");
+    final recorder = await FileRecorder.create(); //initialize
     final filePath = await recorder.record(Duration(seconds: 60)); //start recording and send filePath
     final file = File(filePath);
-    //return file.openRead();
-    return file.readAsBytes();
+    return file.readAsBytes(); //For Stream: return file.openRead();
   }
 }

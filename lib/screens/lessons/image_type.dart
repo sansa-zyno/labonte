@@ -6,8 +6,8 @@ import 'package:french_app/constants/app_constants.dart';
 import 'package:french_app/constants/app_images.dart';
 import 'package:french_app/helpers/common.dart';
 import 'package:french_app/helpers/size_utils.dart';
+import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
-import 'package:french_app/screens/decision.dart';
 import 'package:french_app/widgets/cached_image.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -248,7 +248,7 @@ class _ImageTypeState extends State<ImageType> {
                                         child: Column(
                                           children: [
                                             SizedBox(height: 10),
-                                            CachedImage('${newImageList![index]['image']}', height: 50, fit: BoxFit.fitWidth),
+                                            CachedImage('${newImageList![index]['image']}', height: getSize(50, context), fit: BoxFit.fitWidth),
                                             Divider(),
                                             Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -277,7 +277,7 @@ class _ImageTypeState extends State<ImageType> {
                                       return Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          CachedImage('${newImageList![index]['image']}', height: 50, fit: BoxFit.fitWidth),
+                                          CachedImage('${newImageList![index]['image']}', height: getSize(50, context), fit: BoxFit.fitWidth),
                                           CustomText(text: '${newImageList![index]['name']}', size: fontSizeExtraSmall, textAlign: TextAlign.center),
                                         ],
                                       );
@@ -299,7 +299,8 @@ class _ImageTypeState extends State<ImageType> {
                                         decoration: BoxDecoration(color: AppColors.lightGrey3, borderRadius: BorderRadius.circular(15)),
                                         child: Row(
                                           children: [
-                                            CachedImage('${newImageList![index]['image']}', width: 50, height: 50, fit: BoxFit.cover),
+                                            CachedImage('${newImageList![index]['image']}',
+                                                width: getSize(50, context), height: getSize(50, context), fit: BoxFit.cover),
                                             SizedBox(width: getHorizontalSize(15, context)),
                                             Expanded(
                                               child: Column(

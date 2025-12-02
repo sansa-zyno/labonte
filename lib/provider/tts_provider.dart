@@ -12,8 +12,10 @@ enum AudioPlayerState { stopped, playing, paused }
 
 class TextToSpeechProvider extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  //Uint8List? currentAudioBytes;
   //String? currentText;
+  //Uint8List? currentAudioBytes;
+  //String? _lastFrenchWord;
+  //Uint8List? _lastAudioBytes;
   AudioPlayerState playerState = AudioPlayerState.stopped;
   bool loading = false;
 
@@ -28,8 +30,8 @@ class TextToSpeechProvider extends ChangeNotifier {
     try {
       String text = '';
       if (result is String) {
-        final matchI = RegExp(r'\bI\b', caseSensitive: false);
         //html type lesson
+        final matchI = RegExp(r'\bI\b', caseSensitive: false);
         text = parse(result).body?.text ?? '';
         //text = result.replaceAll('&nbsp;', '');
         text = text.replaceAll(matchI, 'aï');
@@ -43,8 +45,11 @@ class TextToSpeechProvider extends ChangeNotifier {
       //final appDocDir = await getTemporaryDirectory();
       loading = true;
       notifyListeners();
-      //log(filename);
       final file = File('${appDocDir.path}/$filename.mp3');
+      if (Platform.isIOS) {
+        // 🔥 FIX: create directory if missing
+        await file.parent.create(recursive: true);
+      }
       // ✅ If file already exists, just play it
       if (await file.exists()) {
         await _audioPlayer.stop(); //important
@@ -83,6 +88,10 @@ class TextToSpeechProvider extends ChangeNotifier {
     loading = true;
     notifyListeners();
     final file = File('${appDocDir.path}/$filename.mp3');
+    if (Platform.isIOS) {
+      // 🔥 FIX: create directory if missing
+      await file.parent.create(recursive: true);
+    }
     // ✅ If file already exists, just play it
     if (await file.exists()) {
       await _audioPlayer.stop(); //important
@@ -190,7 +199,8 @@ class TextToSpeechProvider extends ChangeNotifier {
     }
   }*/
 
-  /*if(currentAudioBytes != null) {
+  /*repeatFullAudio() async {
+    if (currentAudioBytes != null) {
       final source = AudioSource.uri(
         Uri.dataFromBytes(currentAudioBytes!, mimeType: 'audio/mpeg'),
       );
@@ -201,7 +211,8 @@ class TextToSpeechProvider extends ChangeNotifier {
       await _audioPlayer.play();
       playerState = AudioPlayerState.stopped;
       notifyListeners();
-    }*/
+    }
+  }*/
 
   /*static Future<void> playPronunciation(String frenchWord) async {
     // Only re-generate if it's a different word

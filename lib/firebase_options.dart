@@ -64,13 +64,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'Place your key',
-    appId: 'Place your key',
-    messagingSenderId: 'Place your key',
-    projectId: 'Place your key',
-    storageBucket: 'Place your key',
-    androidClientId: 'Place your key',
-    iosClientId: 'Place your key',
-    iosBundleId: 'Place your key',
+    apiKey: 'AIzaSyDv-nYLIL5fPkgN4HKQFO0D6W4AZxAIdJE',
+    appId: '1:242679840453:ios:7093e0e243fe7423773aac',
+    messagingSenderId: '242679840453',
+    projectId: 'labonte-81eaa',
+    storageBucket: 'labonte-81eaa.firebasestorage.app',
+    iosBundleId: 'com.labonte.www',
   );
 }

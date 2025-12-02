@@ -2,7 +2,7 @@ class TextToSpeechHelper {
   static String preprocessForFrenchTTS(String text) {
     final replacements = {
       // English words → French phonetic equivalents
-      'Nice': 'Naïs', // to avoid French "Niss"
+      'Nice': 'Naïs',
       'has': 'haze',
       'Here': 'hïir',
       'Cow': 'kaou',
@@ -11,8 +11,8 @@ class TextToSpeechHelper {
       'nouns': 'naounz',
       'pronoun': 'pronaoun',
       'pronouns': 'pronaounz',
-      'live': 'lïv', // for verb form
-      'lives': 'lïvves', // for plural noun or 3rd person verb
+      'live': 'lïv',
+      'lives': 'lïvves',
       'these': 'dïïïz',
       'um': 'hum',
       'Describe': 'dèzkraïb',
@@ -92,4 +92,4 @@ class TextToSpeechHelper {
 
 
 
-//reserved words: speak,prosody,rate,slow,pitch,break,time,emphasis,xml,lang
+//Reserved words: speak,prosody,rate,slow,pitch,break,time,emphasis,xml,lang
