@@ -142,11 +142,11 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
                 text: 'Continue',
                 color: AppColors.buttonColor,
                 onpressed: () async {
-                  if (entitlementProvider.entitlement == Entitlement.pro) {
-                    if (widget.lessonData.exercises.isNotEmpty && widget.goToNext != null) {
-                      widget.goToNext!(buildContext: context);
-                    } else {
-                      //Exercises is empty and goToNext is null
+                  if (widget.lessonData.exercises.isNotEmpty && widget.goToNext != null) {
+                    widget.goToNext!(buildContext: context);
+                  } else {
+                    //Exercises is empty and goToNext is null
+                    if (entitlementProvider.entitlement == Entitlement.pro) {
                       changeScreenRemoveUntill(
                           context,
                           BottomNavbar(
@@ -158,9 +158,9 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
                                 subLessonIndex: 0,
                                 previousPageIndex: 1),
                           ));
+                    } else {
+                      changeScreen(context, Subscription());
                     }
-                  } else {
-                    changeScreen(context, Subscription());
                   }
                 },
               ),

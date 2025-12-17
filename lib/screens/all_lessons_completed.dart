@@ -123,7 +123,7 @@ class _AllLessonsCompletedState extends State<AllLessonsCompleted> {
                             color: AppColors.buttonColor,
                             onpressed: () {
                               if (entitlementProvider.entitlement == Entitlement.pro) {
-                                changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                                changeScreen(context, CertificateScreen(learnerName: appProvider.userModel?.name ?? 'N/A'));
                               } else {
                                 changeScreen(context, Subscription());
                               }

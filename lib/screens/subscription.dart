@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:french_app/constants/app_colors.dart';
@@ -33,6 +34,7 @@ class _SubscriptionState extends State<Subscription> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return AnnotatedRegion(
       value: const SystemUiOverlayStyle(statusBarColor: AppColors.whiteColor1, systemNavigationBarColor: AppColors.whiteColor1),
       child: Scaffold(
@@ -52,21 +54,37 @@ class _SubscriptionState extends State<Subscription> {
                   fit: BoxFit.cover,
                   width: double.infinity,
                 ),
-                Positioned(left: 30, top: 10, child: Image.asset(AppImages.girl)),
-                Positioned(left: 150, child: Image.asset(AppImages.bonjour)),
-                Positioned(right: 0, top: -5, child: Image.asset(AppImages.book)),
-                Positioned(right: 0, bottom: 50, child: Image.asset(AppImages.stars)),
+                Positioned(
+                    left: getHorizontalSize(30, context),
+                    bottom: getVerticalSize(15, context),
+                    child: Image.asset(AppImages.girl, height: getSize(151, context), fit: BoxFit.cover)),
+                Positioned(
+                    left: getHorizontalSize(150, context),
+                    bottom: width < 600 ? getVerticalSize(15, context) : getVerticalSize(40, context),
+                    child: Image.asset(AppImages.bonjour, height: getSize(157, context), fit: BoxFit.cover)),
+                Positioned(
+                  right: 0,
+                  top: getVerticalSize(-5, context),
+                  child: Image.asset(AppImages.book, height: getSize(38, context), fit: BoxFit.cover),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: getVerticalSize(50, context),
+                  child: Image.asset(AppImages.stars, height: getSize(54, context), fit: BoxFit.cover),
+                ),
                 canGoBack
                     ? Positioned(
-                        left: 15,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Icon(Icons.arrow_back),
-                          ),
+                        left: getHorizontalSize(15, context),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Icon(
+                                Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios,
+                                size: getSize(20, context),
+                              )),
                         ),
                       )
                     : SizedBox.shrink(),
@@ -74,7 +92,7 @@ class _SubscriptionState extends State<Subscription> {
             ),
             SizedBox(height: getVerticalSize(15, context)),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+              padding: getPadding(context: context, left: 15, right: 15),
               child: Column(
                 children: [
                   CustomText(
@@ -84,7 +102,7 @@ class _SubscriptionState extends State<Subscription> {
                   ),
                   SizedBox(height: getVerticalSize(15, context)),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    padding: getPadding(context: context, left: 15, right: 15),
                     child: Column(
                       children: [
                         Row(
@@ -96,7 +114,7 @@ class _SubscriptionState extends State<Subscription> {
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(child: CustomText(text: '3-day free trial with full features', lineHeight: 1.2, size: 13))
+                            Expanded(child: CustomText(text: '3-day free trial with full features', size: getFontSize(13, context)))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
@@ -109,7 +127,7 @@ class _SubscriptionState extends State<Subscription> {
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(child: CustomText(text: '30 interactive lessons (Beginner to Advanced)', lineHeight: 1.2, size: 13))
+                            Expanded(child: CustomText(text: '30 interactive lessons (Beginner to Advanced)', size: getFontSize(13, context)))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
@@ -122,7 +140,7 @@ class _SubscriptionState extends State<Subscription> {
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(child: CustomText(text: 'AI-powered tutor to answer your questions instantly', lineHeight: 1.2, size: 13))
+                            Expanded(child: CustomText(text: 'AI-powered tutor to answer your questions instantly', size: getFontSize(13, context)))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
@@ -135,7 +153,7 @@ class _SubscriptionState extends State<Subscription> {
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(child: CustomText(text: 'Live tutor sessions for real-time speaking practice', lineHeight: 1.2, size: 13))
+                            Expanded(child: CustomText(text: 'Live tutor sessions for real-time speaking practice', size: getFontSize(13, context)))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
@@ -148,7 +166,7 @@ class _SubscriptionState extends State<Subscription> {
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(child: CustomText(text: 'Certificate of Completion at the end of the course', lineHeight: 1.2, size: 13))
+                            Expanded(child: CustomText(text: 'Certificate of Completion at the end of the course', size: getFontSize(13, context)))
                           ],
                         ),
                         SizedBox(height: getVerticalSize(5, context)),
@@ -161,7 +179,7 @@ class _SubscriptionState extends State<Subscription> {
                               onChanged: (x) {},
                             ),
                             SizedBox(height: getHorizontalSize(5, context)),
-                            Expanded(child: CustomText(text: 'Cancel anytime within the trial period at no cost', lineHeight: 1.2, size: 13))
+                            Expanded(child: CustomText(text: 'Cancel anytime within the trial period at no cost', size: getFontSize(13, context)))
                           ],
                         ),
                       ],
@@ -192,6 +210,7 @@ class _SubscriptionState extends State<Subscription> {
       final packages = offerings.map((offer) => offer.availablePackages).expand((pair) => pair).toList();
       showModalBottomSheet(
           context: context,
+          constraints: BoxConstraints(minWidth: double.infinity),
           builder: (bottomSheetContext) => PaywallWidget(
               title: "Get full access",
               description: "",

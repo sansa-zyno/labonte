@@ -15,6 +15,7 @@ import 'package:french_app/services/gemini_service.dart';
 import 'package:french_app/widgets/cached_image.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 
 class InputTextCorrection extends StatefulWidget {
@@ -122,26 +123,12 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: appBarSpace),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.of(context).maybePop();
-                            },
-                            child: Icon(Icons.arrow_back),
-                          ),
-                          Spacer(),
-                          CustomText(
-                            text: widget.correction.lessonTitle,
-                            size: getFontSize(18, context),
-                            weight: FontWeight.w500,
-                          ),
-                          Spacer(),
-                        ],
-                      ),
+                    TopBar(
+                      type: widget.correction.type,
+                      title: widget.correction.lessonTitle,
+                      callBack: () {
+                        Navigator.of(context).maybePop();
+                      },
                     ),
                     SizedBox(height: getVerticalSize(15, context)),
                     AppConstants.buildHeaderUserSound(
@@ -149,7 +136,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                       icon: textToSpeechProvider.playerState == AudioPlayerState.playing
                           ? Image.asset(AppImages.userSound, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
                           : Padding(
-                              padding: const EdgeInsets.only(right: 8, top: 8),
+                              padding: getPadding(context: context, right: 8, top: 8),
                               child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
                             ),
                       loading: textToSpeechProvider.loading,
@@ -198,7 +185,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                                     );
                                   }).toList()),
                             ),
-                          widget.correction.inputText!.type == "list-of-input-text"
+                          widget.correction.type == "list-of-input-text"
                               ? ListView.separated(
                                   physics: NeverScrollableScrollPhysics(),
                                   itemCount: data?.length ?? 0,
@@ -329,7 +316,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
                         color: AppColors.buttonColor,
                         onpressed: () {
                           double score = 0;
-                          if (widget.correction.inputText!.type == "list-of-input-text") {
+                          if (widget.correction.type == "list-of-input-text") {
                             score = correctAnswerCount / (data?.length ?? 1);
                           } else {
                             if (answers.isNotEmpty) {
@@ -397,7 +384,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
 
   void _calculateCorrectAnswers() {
     correctAnswerCount = 0;
-    if (widget.correction.inputText!.type == "list-of-input-text") {
+    if (widget.correction.type == "list-of-input-text") {
       for (int i = 0; i < controllers.length; i++) {
         if (isListOfInputTypeCorrect(controllers[i].text, answers[i])) {
           correctAnswerCount++;
@@ -421,7 +408,7 @@ class _InputTextCorrectionState extends State<InputTextCorrection> {
 
   Future<void> getAnswers() async {
     try {
-      if (widget.correction.inputText!.type == 'list-of-input-text') {
+      if (widget.correction.type == 'list-of-input-text') {
         //case 1
         if (data!.every((element) => element['answer'] != '')) {
           for (Map map in data!) {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:french_app/services/stt_service.dart';
 
@@ -6,7 +8,7 @@ enum STTState { listening, processing, finished, error }
 class SpeechToTextProvider extends ChangeNotifier {
   STTState sttState = STTState.finished;
 
-  Future<String?> startRecognition() async {
+  Future<String?> startSpeechToText() async {
     try {
       sttState = STTState.listening;
       notifyListeners();
@@ -24,6 +26,7 @@ class SpeechToTextProvider extends ChangeNotifier {
         return null;
       }
     } catch (e) {
+      log(e.toString());
       sttState = STTState.error;
       notifyListeners();
       return null;

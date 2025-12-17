@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,14 +42,16 @@ class _Onboarding6State extends State<Onboarding6> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: appBarSpace),
-              InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Icon(Icons.arrow_back),
-                ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Icon(
+                      Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios,
+                      size: getSize(20, context),
+                    )),
               ),
               SizedBox(height: getVerticalSize(15, context)),
               LinearProgressIndicator(

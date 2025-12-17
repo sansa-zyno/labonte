@@ -82,7 +82,12 @@ class _CertificateScreenState extends State<CertificateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(color: Colors.black),
+        leading: BackButton(
+          color: Colors.black,
+          style: ButtonStyle(
+            iconSize: WidgetStateProperty.all<double>(getSize(20, context)),
+          ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -108,41 +113,47 @@ class _CertificateScreenState extends State<CertificateScreen> {
                       border: Border.all(color: AppColors.buttonColor, width: 12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: getPadding(context: context, all: 20),
                       child: Column(
                         children: [
                           Text(
                             'CERTIFICATE',
-                            style: GoogleFonts.roboto().copyWith(fontSize: 18, color: AppColors.blackColor3, fontWeight: FontWeight.w500),
+                            style: GoogleFonts.roboto()
+                                .copyWith(fontSize: getFontSize(18, context), color: AppColors.blackColor3, fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center,
                           ),
                           Text(
                             'OF APPRECIATION',
-                            style: GoogleFonts.roboto().copyWith(fontSize: 9, color: AppColors.blackColor3, height: 0.5),
+                            style: GoogleFonts.roboto().copyWith(fontSize: getFontSize(9, context), color: AppColors.blackColor3, height: 0.5),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 20),
-                          const Text(
+                          SizedBox(height: getVerticalSize(20, context)),
+                          Text(
                             'Proudly presented to',
-                            style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                            style: TextStyle(fontSize: getFontSize(fontSizeSmall, context), fontStyle: FontStyle.italic),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: getVerticalSize(12, context)),
                           Text(
                             widget.learnerName,
-                            style: GoogleFonts.greatVibes().copyWith(fontSize: 24, color: AppColors.blackColor3, fontWeight: FontWeight.w500),
+                            style: GoogleFonts.greatVibes()
+                                .copyWith(fontSize: getFontSize(24, context), color: AppColors.blackColor3, fontWeight: FontWeight.w500),
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
+                          SizedBox(height: getVerticalSize(12, context)),
+                          Text(
                             'For successfully completing the 30th lesson\nin the French Learning Program.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: getFontSize(fontSizeSmall, context)),
                           ),
                           Spacer(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('____________________\nInstructor', style: TextStyle(color: AppColors.blackColor3), textAlign: TextAlign.center),
-                              Text('____________________\nDate', style: TextStyle(color: AppColors.blackColor3), textAlign: TextAlign.center),
+                              Text('____________________\nInstructor',
+                                  style: TextStyle(fontSize: getFontSize(fontSizeSmall, context), color: AppColors.blackColor3),
+                                  textAlign: TextAlign.center),
+                              Text('____________________\nDate',
+                                  style: TextStyle(fontSize: getFontSize(fontSizeSmall, context), color: AppColors.blackColor3),
+                                  textAlign: TextAlign.center),
                             ],
                           ),
                           Spacer(),
@@ -154,7 +165,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
               ),
             ),
 
-            const SizedBox(height: 30),
+            SizedBox(height: getVerticalSize(30, context)),
 
             // --- Download / Share ---
             Row(
@@ -169,11 +180,11 @@ class _CertificateScreenState extends State<CertificateScreen> {
                         height: getSize(24, context),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: getVerticalSize(5, context)),
                     Text('Download')
                   ],
                 ),
-                const SizedBox(width: 100),
+                SizedBox(width: getHorizontalSize(100, context)),
                 Column(
                   children: [
                     InkWell(
@@ -183,7 +194,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
                         height: getSize(24, context),
                       ),
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: getVerticalSize(5, context)),
                     Text('Share')
                   ],
                 ),

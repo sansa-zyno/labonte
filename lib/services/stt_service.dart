@@ -28,7 +28,7 @@ class SpeechToTextService {
       return null;
     }
     final recorder = await FileRecorder.create(); //initialize
-    final filePath = await recorder.record(Duration(seconds: 60)); //start recording and send filePath
+    final filePath = await recorder.record(Duration(seconds: 59)); //start recording and send filePath
     final file = File(filePath);
     return file.readAsBytes(); //For Stream: return file.openRead();
   }

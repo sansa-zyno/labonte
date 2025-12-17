@@ -11,6 +11,7 @@ import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/widgets/cached_image.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 
 class ImageType extends StatefulWidget {
@@ -90,6 +91,7 @@ class _ImageTypeState extends State<ImageType> {
   @override
   Widget build(BuildContext context) {
     textToSpeechProvider = Provider.of<TextToSpeechProvider>(context);
+    double width = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
       onPopInvoked: (x) {
@@ -106,22 +108,12 @@ class _ImageTypeState extends State<ImageType> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: appBarSpace),
-              Padding(
-                padding: const EdgeInsets.only(right: 15),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                      },
-                      child: Icon(Icons.arrow_back),
-                    ),
-                    Spacer(),
-                    CustomText(text: widget.snapshot['title'], size: getFontSize(18, context), weight: FontWeight.w500),
-                    Spacer(),
-                  ],
-                ),
+              TopBar(
+                type: widget.snapshot['type'],
+                title: widget.snapshot['title'],
+                callBack: () {
+                  Navigator.of(context).maybePop();
+                },
               ),
               SizedBox(height: getVerticalSize(15, context)),
               Row(
@@ -133,7 +125,7 @@ class _ImageTypeState extends State<ImageType> {
                     icon: textToSpeechProvider.playerState == AudioPlayerState.playing
                         ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
                         : Padding(
-                            padding: const EdgeInsets.only(right: 8, top: 8),
+                            padding: getPadding(context: context, right: 8, top: 8),
                             child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
                           ),
                     loading: textToSpeechProvider.loading,
@@ -148,15 +140,18 @@ class _ImageTypeState extends State<ImageType> {
                     },
                   ),
                   Spacer(flex: 1),
-                  GestureDetector(
-                    onTap: () {
-                      textToSpeechProvider.repeatFullAudio(filename: filename);
-                    },
-                    child: Row(children: [
-                      CustomText(text: 'Repeat audio', size: getFontSize(10, context)),
-                      SizedBox(width: 5),
-                      Image.asset(AppImages.speaker, height: 10, color: Colors.black45)
-                    ]),
+                  Padding(
+                    padding: getPadding(context: context, left: width < 600 ? 0 : 20),
+                    child: GestureDetector(
+                      onTap: () {
+                        textToSpeechProvider.repeatFullAudio(filename: filename);
+                      },
+                      child: Row(children: [
+                        CustomText(text: 'Repeat audio', size: getFontSize(10, context)),
+                        SizedBox(width: getHorizontalSize(3, context)),
+                        Image.asset(AppImages.speaker, height: getSize(8.5, context), color: Colors.black45)
+                      ]),
+                    ),
                   )
                 ],
               ),
@@ -222,9 +217,9 @@ class _ImageTypeState extends State<ImageType> {
                                 physics: NeverScrollableScrollPhysics(),
                                 padding: EdgeInsets.all(0),
                                 itemCount: newImageList!.length,
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
-                                  childAspectRatio: 1.0,
+                                  childAspectRatio: width < 600 ? 1.0 : 1.5,
                                   mainAxisSpacing: 15,
                                   crossAxisSpacing: 15,
                                 ),
@@ -269,7 +264,7 @@ class _ImageTypeState extends State<ImageType> {
                                     itemCount: newImageList!.length,
                                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 4,
-                                      childAspectRatio: 0.78,
+                                      childAspectRatio: width < 600 ? 0.78 : 1.0,
                                       crossAxisSpacing: 15,
                                       mainAxisSpacing: 0,
                                     ),
@@ -278,7 +273,10 @@ class _ImageTypeState extends State<ImageType> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           CachedImage('${newImageList![index]['image']}', height: getSize(50, context), fit: BoxFit.fitWidth),
-                                          CustomText(text: '${newImageList![index]['name']}', size: fontSizeExtraSmall, textAlign: TextAlign.center),
+                                          CustomText(
+                                              text: '${newImageList![index]['name']}',
+                                              size: width < 600 ? fontSizeExtraSmall : fontSizeMedium,
+                                              textAlign: TextAlign.center),
                                         ],
                                       );
                                     })

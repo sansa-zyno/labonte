@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
@@ -73,7 +75,7 @@ class _ProfileState extends State<Profile> {
                         changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
                       }
                     },
-                    child: Icon(Icons.arrow_back)),
+                    child: Icon(Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios, size: getSize(20, context))),
                 Spacer(),
                 CustomText(text: 'Profile', size: getFontSize(18, context), weight: FontWeight.w500),
                 Spacer(),
@@ -81,7 +83,7 @@ class _ProfileState extends State<Profile> {
                     onTap: () {
                       changeScreen(context, BottomNavbar(pageIndex: 3, newpage: SettingsScreen()));
                     },
-                    child: Icon(Icons.settings_outlined))
+                    child: Icon(Icons.settings_outlined, size: getSize(20, context)))
               ]),
               SizedBox(height: getVerticalSize(15, context)),
               CustomText(text: 'Course Progress', weight: FontWeight.w600),
@@ -116,22 +118,18 @@ class _ProfileState extends State<Profile> {
                                               child: Column(children: [
                                                 GestureDetector(
                                                   onTap: () {
-                                                    if (entitlementProvider.entitlement == Entitlement.pro) {
-                                                      changeScreen(
-                                                          context,
-                                                          BottomNavbar(
-                                                              pageIndex: 1,
-                                                              newpage: DecisionScreen(
-                                                                  isReview: false,
-                                                                  previousPageIndex: 1,
-                                                                  lessonData: null, //important
-                                                                  lessonIndex: int.parse(lessonIndex),
-                                                                  subLessonIndex: subLessonIndex,
-                                                                  exerciseIndex: 0 //exerciseIndex,
-                                                                  )));
-                                                    } else {
-                                                      changeScreen(context, Subscription());
-                                                    }
+                                                    changeScreen(
+                                                        context,
+                                                        BottomNavbar(
+                                                            pageIndex: 1,
+                                                            newpage: DecisionScreen(
+                                                                isReview: false,
+                                                                previousPageIndex: 1,
+                                                                lessonData: null, //important
+                                                                lessonIndex: int.parse(lessonIndex),
+                                                                subLessonIndex: subLessonIndex,
+                                                                exerciseIndex: 0 //exerciseIndex,
+                                                                )));
                                                   },
                                                   child: Stack(
                                                     alignment: Alignment.center,
@@ -176,8 +174,8 @@ class _ProfileState extends State<Profile> {
                                                 SizedBox(height: getVerticalSize(10, context)),
                                                 CustomText(
                                                     text: partialLessonIndex < totalLessonIndex
-                                                        ? 'Lesson ${lessonIndex} in Progress'
-                                                        : 'Lesson ${lessonIndex} is Completed',
+                                                        ? 'Lesson $lessonIndex in Progress'
+                                                        : 'Lesson $lessonIndex is Completed',
                                                     size: 12,
                                                     textAlign: TextAlign.center)
                                               ])));
@@ -190,13 +188,16 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: getVerticalSize(8, context)),
               Card(
                   child: Container(
-                      padding: EdgeInsets.all(8),
+                      padding: getPadding(context: context, all: 8),
                       decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(color: AppColors.blackColor1.withOpacity(0.1)),
                           borderRadius: BorderRadius.circular(8)),
                       child: Row(children: [
-                        CircleAvatar(backgroundColor: Color(0xFFEEF3FF), child: Image.asset(AppIcons.practicewithAI, height: getSize(20, context))),
+                        CircleAvatar(
+                            radius: getSize(20, context),
+                            backgroundColor: Color(0xFFEEF3FF),
+                            child: Image.asset(AppIcons.practicewithAI, height: getSize(20, context))),
                         SizedBox(width: getHorizontalSize(8, context)),
                         Expanded(
                             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -209,7 +210,7 @@ class _ProfileState extends State<Profile> {
                             text: 'Ask AI',
                             height: getVerticalSize(28, context),
                             color: AppColors.whiteColor1,
-                            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                            padding: getPadding(context: context, left: 15, top: 5, right: 15, bottom: 5),
                             textSize: getFontSize(11, context),
                             textColor: AppColors.primaryColor,
                             border: Border.all(color: AppColors.primaryColor, width: 1.5),
@@ -242,22 +243,18 @@ class _ProfileState extends State<Profile> {
                                           //int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                           return GestureDetector(
                                             onTap: () {
-                                              if (entitlementProvider.entitlement == Entitlement.pro) {
-                                                changeScreen(
-                                                    context,
-                                                    BottomNavbar(
-                                                        pageIndex: 1,
-                                                        newpage: DecisionScreen(
-                                                            isReview: false,
-                                                            previousPageIndex: 1,
-                                                            lessonData: null, //important
-                                                            lessonIndex: int.parse(lessonIndex),
-                                                            subLessonIndex: subLessonIndex,
-                                                            exerciseIndex: 0 //exerciseIndex,
-                                                            )));
-                                              } else {
-                                                changeScreen(context, Subscription());
-                                              }
+                                              changeScreen(
+                                                  context,
+                                                  BottomNavbar(
+                                                      pageIndex: 1,
+                                                      newpage: DecisionScreen(
+                                                          isReview: false,
+                                                          previousPageIndex: 1,
+                                                          lessonData: null, //important
+                                                          lessonIndex: int.parse(lessonIndex),
+                                                          subLessonIndex: subLessonIndex,
+                                                          exerciseIndex: 0 //exerciseIndex,
+                                                          )));
                                             },
                                             child: Container(
                                                 height: double.infinity,
@@ -311,7 +308,7 @@ class _ProfileState extends State<Profile> {
           Spacer(),
           Container(
               alignment: Alignment.center,
-              height: 50,
+              height: getVerticalSize(50, context),
               width: double.infinity,
               decoration: BoxDecoration(color: AppColors.yellow.withOpacity(0.8)),
               child: entitlementProvider.entitlementInfo == null

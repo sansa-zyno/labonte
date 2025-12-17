@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,14 +40,16 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               child: Column(
                 children: [
                   SizedBox(height: appBarSpace),
-                  InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Icon(Icons.arrow_back),
-                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Icon(
+                          Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios,
+                          size: getSize(20, context),
+                        )),
                   ),
                   Image.asset(
                     AppImages.logo,

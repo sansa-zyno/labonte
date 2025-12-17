@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () {
                     Navigator.pop(context);
                   },
-                  child: Icon(Icons.arrow_back),
+                  child: Icon(Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios, size: getSize(20, context)),
                 ),
                 Spacer(),
                 CustomText(
@@ -57,13 +57,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   weight: FontWeight.w500,
                 ),
                 Spacer(),
-                SizedBox(width: 30)
+                SizedBox(width: getHorizontalSize(20, context))
               ],
             ),
             SizedBox(height: getVerticalSize(15, context)),
-            CustomText(text: '${appProvider.userModel?.name ?? 'N/A'}', size: getFontSize(20, context), weight: FontWeight.w500),
-            SizedBox(height: getVerticalSize(5, context)),
-            CustomText(text: '${appProvider.userModel?.email ?? 'N/A'}', size: 12, weight: FontWeight.w300, lineHeight: 1),
+            CustomText(text: appProvider.userModel?.name ?? 'N/A', size: getFontSize(20, context), weight: FontWeight.w500),
+            SizedBox(height: getVerticalSize(3, context)),
+            CustomText(text: appProvider.userModel?.email ?? 'N/A', size: getFontSize(fontSizeSmall, context), weight: FontWeight.w300),
             SizedBox(height: getVerticalSize(10, context)),
             /*Divider(color: AppColors.lightGrey3),
             ListTile(

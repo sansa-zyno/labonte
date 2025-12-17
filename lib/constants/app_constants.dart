@@ -25,7 +25,7 @@ class AppConstants {
           child: Container(
             width: getHorizontalSize(124, context),
             height: getVerticalSize(110, context),
-            padding: loading ? null : EdgeInsets.fromLTRB(15, 5, 5, 15),
+            padding: loading ? null : getPadding(context: context, left: 15, top: 5, right: 5, bottom: 15),
             decoration: BoxDecoration(
               color: AppColors.red4,
               shape: BoxShape.circle,
@@ -34,8 +34,8 @@ class AppConstants {
             child: Center(
                 child: loading
                     ? SizedBox(
-                        height: 25,
-                        width: 25,
+                        height: getSize(25, context),
+                        width: getSize(25, context),
                         child: CircularProgressIndicator(color: Colors.white),
                       )
                     : icon),
@@ -59,7 +59,7 @@ class AppConstants {
           child: Container(
             width: getHorizontalSize(124, context),
             height: getVerticalSize(110, context),
-            padding: loading ? null : EdgeInsets.fromLTRB(15, 5, 5, 15),
+            padding: loading ? null : getPadding(context: context, left: 15, top: 5, right: 5, bottom: 15),
             decoration: BoxDecoration(
               color: AppColors.red4,
               shape: BoxShape.circle,
@@ -68,8 +68,8 @@ class AppConstants {
             child: Center(
                 child: loading
                     ? SizedBox(
-                        height: 25,
-                        width: 25,
+                        height: getSize(25, context),
+                        width: getSize(25, context),
                         child: CircularProgressIndicator(color: Colors.white),
                       )
                     : icon),
@@ -83,11 +83,11 @@ class AppConstants {
       children: [
         CustomText(text: 'Start Your First Lesson', size: getFontSize(16, context), weight: FontWeight.w600, lineHeight: 0.8),
         SizedBox(height: getVerticalSize(3, context)),
-        CustomText(text: 'Begin your steps to mastering French', size: getFontSize(12, context)),
+        CustomText(text: 'Begin your steps to mastering French', size: getFontSize(fontSizeSmall, context)),
         SizedBox(height: getVerticalSize(5, context)),
         Card(
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+            padding: getPadding(context: context, left: 12, top: 15, right: 12, bottom: 15),
             decoration: BoxDecoration(
                 color: Colors.white, border: Border.all(color: AppColors.blackColor1.withOpacity(0.1)), borderRadius: BorderRadius.circular(8)),
             child: Column(
@@ -98,32 +98,31 @@ class AppConstants {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(AppIcons.calender, height: getSize(30, context)),
-                    SizedBox(width: 15),
+                    SizedBox(width: getHorizontalSize(15, context)),
                     Expanded(
                       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                         CustomText(text: 'Learn your alphabets today', weight: FontWeight.w600),
-                        SizedBox(height: 8),
+                        SizedBox(height: getVerticalSize(8, context)),
                         LinearProgressIndicator(
                             value: 0.1,
-                            minHeight: 10,
+                            minHeight: getVerticalSize(10, context),
                             backgroundColor: Colors.grey.withOpacity(0.5),
                             color: AppColors.blueColor,
                             borderRadius: BorderRadius.circular(10))
                       ]),
                     ),
-                    SizedBox(width: 15),
-                    Icon(Icons.arrow_forward_ios, size: 20)
+                    SizedBox(width: getHorizontalSize(15, context)),
+                    Icon(Icons.arrow_forward_ios, size: getSize(20, context))
                   ],
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: getVerticalSize(20, context)),
                 CustomButton(
                   height: getVerticalSize(36, context),
                   width: getHorizontalSize(86, context),
-                  padding: EdgeInsets.symmetric(horizontal: 15),
                   borderRadius: 10,
                   color: AppColors.primaryColor,
                   textColor: AppColors.whiteColor1,
-                  textSize: 12,
+                  textSize: getFontSize(fontSizeSmall, context),
                   text: 'Start Now',
                   onpressed: () {
                     changeScreen(

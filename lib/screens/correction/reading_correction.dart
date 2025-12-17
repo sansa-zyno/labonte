@@ -12,6 +12,7 @@ import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 
 class ReadingCorrection extends StatefulWidget {
@@ -143,26 +144,12 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: appBarSpace),
-              Padding(
-                padding: const EdgeInsets.only(right: 15),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                      },
-                      child: Icon(Icons.arrow_back),
-                    ),
-                    Spacer(),
-                    CustomText(
-                      text: widget.correction.lessonTitle,
-                      size: getFontSize(18, context),
-                      weight: FontWeight.w500,
-                    ),
-                    Spacer(),
-                  ],
-                ),
+              TopBar(
+                type: widget.correction.type,
+                title: widget.correction.lessonTitle,
+                callBack: () {
+                  Navigator.of(context).maybePop();
+                },
               ),
               SizedBox(height: getVerticalSize(20, context)),
               Row(

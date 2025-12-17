@@ -66,7 +66,7 @@ class _PracticeiWithAIState extends State<PracticeiWithAI> {
         children: [
           SizedBox(height: appBarSpace),
           Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 30, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -78,7 +78,7 @@ class _PracticeiWithAIState extends State<PracticeiWithAI> {
                       changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
                     }
                   },
-                  child: Icon(Icons.arrow_back),
+                  child: Icon(Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios, size: getSize(20, context)),
                 ),
                 Spacer(),
                 CustomText(
@@ -87,6 +87,7 @@ class _PracticeiWithAIState extends State<PracticeiWithAI> {
                   weight: FontWeight.w500,
                 ),
                 Spacer(),
+                SizedBox(width: getHorizontalSize(20, context))
               ],
             ),
           ),
@@ -124,9 +125,7 @@ class _PracticeiWithAIState extends State<PracticeiWithAI> {
                               extractTextFromPdf();
                             },
                             child: Row(children: [
-                              Icon(
-                                Icons.file_upload_outlined,
-                              ),
+                              Icon(Icons.file_upload_outlined, size: getSize(20, context)),
                               SizedBox(width: getHorizontalSize(8, context)),
                               CustomText(text: 'Upload')
                             ]),

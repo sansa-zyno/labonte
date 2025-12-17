@@ -10,6 +10,7 @@ import 'package:french_app/models/lesson_data.dart';
 import 'package:french_app/provider/tts_provider.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 
 class ListType extends StatefulWidget {
@@ -90,26 +91,12 @@ class _ListTypeState extends State<ListType> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: appBarSpace),
-              Padding(
-                padding: const EdgeInsets.only(right: 15),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                      },
-                      child: Icon(Icons.arrow_back),
-                    ),
-                    Spacer(),
-                    CustomText(
-                      text: widget.snapshot['title'],
-                      size: getFontSize(18, context),
-                      weight: FontWeight.w500,
-                    ),
-                    Spacer(),
-                  ],
-                ),
+              TopBar(
+                type: widget.snapshot['type'],
+                title: widget.snapshot['title'],
+                callBack: () {
+                  Navigator.of(context).maybePop();
+                },
               ),
               SizedBox(height: getVerticalSize(15, context)),
               AppConstants.buildHeaderSpeaker(
@@ -117,7 +104,7 @@ class _ListTypeState extends State<ListType> {
                 icon: textToSpeechProvider.playerState == AudioPlayerState.playing
                     ? Image.asset(AppImages.speaker, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
                     : Padding(
-                        padding: const EdgeInsets.only(right: 8, top: 8),
+                        padding: getPadding(context: context, right: 8, top: 8),
                         child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
                       ),
                 loading: textToSpeechProvider.loading,

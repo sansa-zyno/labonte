@@ -11,6 +11,7 @@ import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/correction/reading_correction.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_ripple_animation/simple_ripple_animation.dart';
 
@@ -155,26 +156,12 @@ class _ReadingTypeState extends State<ReadingType> {
           child: Column(
             children: [
               SizedBox(height: appBarSpace),
-              Padding(
-                padding: const EdgeInsets.only(right: 15),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).maybePop();
-                      },
-                      child: Icon(Icons.arrow_back),
-                    ),
-                    Spacer(),
-                    CustomText(
-                      text: widget.snapshot['title'],
-                      size: getFontSize(18, context),
-                      weight: FontWeight.w500,
-                    ),
-                    Spacer(),
-                  ],
-                ),
+              TopBar(
+                type: widget.snapshot['type'],
+                title: widget.snapshot['title'],
+                callBack: () {
+                  Navigator.of(context).maybePop();
+                },
               ),
               SizedBox(height: getVerticalSize(15, context)),
               // Mic
@@ -186,7 +173,7 @@ class _ReadingTypeState extends State<ReadingType> {
                       correctCount = 0;
                       totalCount = 0;
                     });
-                    String? text = await speechToTextProvider.startRecognition();
+                    String? text = await speechToTextProvider.startSpeechToText();
                     if (text != null) {
                       _recognizedText = text;
                       _calculateScore();
@@ -268,6 +255,7 @@ class _ReadingTypeState extends State<ReadingType> {
                     if (speechToTextProvider.sttState == STTState.finished || speechToTextProvider.sttState == STTState.error) {
                       ExerciseCorrection correction = ExerciseCorrection(
                           id: widget.snapshot.id,
+                          type: widget.snapshot['type'],
                           lessonTitle: '${widget.snapshot['title']} - Corrections',
                           lessonInstruction: 'Tap audio to play the correction',
                           reading: Reading(

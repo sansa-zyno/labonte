@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ExerciseCorrection {
   String id;
+  String type;
   String lessonTitle;
   String lessonInstruction;
   Reading? reading;
@@ -11,6 +12,7 @@ class ExerciseCorrection {
 
   ExerciseCorrection({
     required this.id,
+    required this.type,
     required this.lessonTitle,
     required this.lessonInstruction,
     this.reading,
@@ -37,22 +39,20 @@ class Reading {
 }
 
 class FillInTheGap {
-  String type;
   List<String> questions;
   List<String> answers;
   List<List<TextEditingController>> controllers;
   List<List<TextEditingController>> wordAllControllers;
 
-  FillInTheGap({required this.type, required this.questions, required this.answers, required this.controllers, required this.wordAllControllers});
+  FillInTheGap({required this.questions, required this.answers, required this.controllers, required this.wordAllControllers});
 }
 
 class InputText {
-  String type;
   List<Map>? data;
   List<Map<String, dynamic>>? images;
   List<TextEditingController> controllers;
   TextEditingController oneTextViewController;
-  InputText({required this.type, required this.data, required this.images, required this.controllers, required this.oneTextViewController});
+  InputText({required this.data, required this.images, required this.controllers, required this.oneTextViewController});
 }
 
 class Matching {

@@ -120,22 +120,18 @@ class _HomeState extends State<Home> {
                             text: appProvider.continueLessonData == null ? 'Start Now' : 'Continue',
                             icon: Image.asset(AppImages.play, color: AppColors.primaryColor, height: getSize(15, context)),
                             onpressed: () {
-                              if (entitlementProvider.entitlement == Entitlement.pro) {
-                                changeScreen(
-                                    context,
-                                    BottomNavbar(
-                                        pageIndex: 1,
-                                        newpage: DecisionScreen(
-                                            isReview: appProvider.isReview,
-                                            previousPageIndex: 1,
-                                            lessonData: appProvider.continueLessonData,
-                                            lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
-                                            subLessonIndex: appProvider.continueSubLessonIndex,
-                                            exerciseIndex: 0 //appProvider.continueExerciseIndex,
-                                            )));
-                              } else {
-                                changeScreen(context, Subscription());
-                              }
+                              changeScreen(
+                                  context,
+                                  BottomNavbar(
+                                      pageIndex: 1,
+                                      newpage: DecisionScreen(
+                                          isReview: appProvider.isReview,
+                                          previousPageIndex: 1,
+                                          lessonData: appProvider.continueLessonData,
+                                          lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
+                                          subLessonIndex: appProvider.continueSubLessonIndex,
+                                          exerciseIndex: 0 //appProvider.continueExerciseIndex,
+                                          )));
                             },
                           ))
                     ],
@@ -165,22 +161,18 @@ class _HomeState extends State<Home> {
                                             //int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                             return GestureDetector(
                                               onTap: () {
-                                                if (entitlementProvider.entitlement == Entitlement.pro) {
-                                                  changeScreen(
-                                                      context,
-                                                      BottomNavbar(
-                                                          pageIndex: 1,
-                                                          newpage: DecisionScreen(
-                                                              isReview: false,
-                                                              previousPageIndex: 1,
-                                                              lessonData: null, //important
-                                                              lessonIndex: int.parse(lessonIndex),
-                                                              subLessonIndex: subLessonIndex,
-                                                              exerciseIndex: 0 //exerciseIndex,
-                                                              )));
-                                                } else {
-                                                  changeScreen(context, Subscription());
-                                                }
+                                                changeScreen(
+                                                    context,
+                                                    BottomNavbar(
+                                                        pageIndex: 1,
+                                                        newpage: DecisionScreen(
+                                                            isReview: false,
+                                                            previousPageIndex: 1,
+                                                            lessonData: null, //important
+                                                            lessonIndex: int.parse(lessonIndex),
+                                                            subLessonIndex: subLessonIndex,
+                                                            exerciseIndex: 0 //exerciseIndex,
+                                                            )));
                                               },
                                               child: Container(
                                                   width: getHorizontalSize(150, context),
@@ -219,7 +211,7 @@ class _HomeState extends State<Home> {
                 SizedBox(height: getVerticalSize(8, context)),
                 Card(
                   child: Container(
-                    padding: EdgeInsets.all(8),
+                    padding: getPadding(context: context, all: 8),
                     decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(color: AppColors.blackColor1.withOpacity(0.1)),
@@ -227,6 +219,7 @@ class _HomeState extends State<Home> {
                     child: Row(
                       children: [
                         CircleAvatar(
+                          radius: getSize(20, context),
                           backgroundColor: Color(0xFFEEF3FF),
                           child: Image.asset(AppIcons.practicewithAI, height: getSize(20, context)),
                         ),
@@ -247,7 +240,7 @@ class _HomeState extends State<Home> {
                           text: 'Ask AI',
                           height: getVerticalSize(28, context),
                           color: AppColors.whiteColor1,
-                          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                          padding: getPadding(context: context, left: 15, top: 5, right: 15, bottom: 5),
                           textSize: getFontSize(11, context),
                           textColor: AppColors.primaryColor,
                           border: Border.all(color: AppColors.primaryColor, width: 1.5),
@@ -263,9 +256,8 @@ class _HomeState extends State<Home> {
                 CustomText(text: 'Book a Session', weight: FontWeight.w600),
                 SizedBox(height: getVerticalSize(8, context)),
                 Container(
-                  height: getVerticalSize(146, context),
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  padding: getPadding(context: context, all: 12),
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.red2.withOpacity(0.2), width: 1),
                     borderRadius: BorderRadius.circular(12),
@@ -273,10 +265,30 @@ class _HomeState extends State<Home> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          width: getHorizontalSize(90, context),
+                          padding: getPadding(context: context, top: 4, bottom: 4),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.red2.withOpacity(0.3)),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: CustomText(
+                            text: 'Premium users only',
+                            color: AppColors.primaryColor,
+                            weight: FontWeight.w600,
+                            size: getFontSize(8, context),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: getVerticalSize(10, context)),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CircleAvatar(
+                            radius: getSize(20, context),
                             backgroundColor: AppColors.lightGrey2,
                             child: Image.asset(AppIcons.user2, height: getSize(24, context)),
                           ),
@@ -296,7 +308,7 @@ class _HomeState extends State<Home> {
                                     Image.asset(AppIcons.timer, height: getSize(12, context)),
                                     SizedBox(width: 3),
                                     CustomText(
-                                      text: '30min - 2 hrs',
+                                      text: '30min \u2013 2hrs',
                                       size: getFontSize(fontSizeSmall, context),
                                       color: AppColors.blackColor2.withOpacity(0.8),
                                     ),
@@ -304,21 +316,20 @@ class _HomeState extends State<Home> {
                                 ),
                                 SizedBox(height: getVerticalSize(6, context)),
                                 Container(
-                                  height: getVerticalSize(22, context),
                                   width: getHorizontalSize(64, context),
-                                  padding: EdgeInsets.only(left: 6, right: 6),
+                                  padding: getPadding(context: context, top: 4, bottom: 4),
+                                  alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     border: Border.all(color: AppColors.blackColor1.withOpacity(0.4)),
                                     borderRadius: BorderRadius.circular(24),
                                   ),
                                   child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(Icons.person_3, size: getSize(12, context)),
                                       SizedBox(width: getHorizontalSize(3, context)),
-                                      CustomText(
-                                        text: 'Private',
-                                        size: getFontSize(fontSizeExtraSmall, context),
-                                      )
+                                      CustomText(text: 'Private', size: getFontSize(fontSizeExtraSmall, context))
                                     ],
                                   ),
                                 )
@@ -332,7 +343,7 @@ class _HomeState extends State<Home> {
                         height: getVerticalSize(38, context),
                         width: double.infinity,
                         text: 'Schedule Now',
-                        textSize: getFontSize(12, context),
+                        textSize: getFontSize(fontSizeSmall, context),
                         color: AppColors.buttonColor,
                         onpressed: () {
                           if (entitlementProvider.entitlement == Entitlement.pro) {
@@ -346,10 +357,7 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 SizedBox(height: getVerticalSize(15, context)),
-                CustomText(
-                  text: 'Quick Review',
-                  weight: FontWeight.w600,
-                ),
+                CustomText(text: 'Quick Review', weight: FontWeight.w600),
                 SizedBox(height: getVerticalSize(8, context)),
                 SizedBox(
                   height: getVerticalSize(100, context),
@@ -365,21 +373,17 @@ class _HomeState extends State<Home> {
                                     scrollDirection: Axis.horizontal,
                                     itemBuilder: (ctx, index) => GestureDetector(
                                           onTap: () {
-                                            if (entitlementProvider.entitlement == Entitlement.pro) {
-                                              changeScreen(
-                                                  context,
-                                                  BottomNavbar(
-                                                      pageIndex: 1,
-                                                      newpage: DecisionScreen(
-                                                          isReview: true,
-                                                          previousPageIndex: 1,
-                                                          lessonData: null, //important
-                                                          lessonIndex: int.parse(snapshot.data![index].lessonId),
-                                                          subLessonIndex: 0,
-                                                          exerciseIndex: null)));
-                                            } else {
-                                              changeScreen(context, Subscription());
-                                            }
+                                            changeScreen(
+                                                context,
+                                                BottomNavbar(
+                                                    pageIndex: 1,
+                                                    newpage: DecisionScreen(
+                                                        isReview: true,
+                                                        previousPageIndex: 1,
+                                                        lessonData: null, //important
+                                                        lessonIndex: int.parse(snapshot.data![index].lessonId),
+                                                        subLessonIndex: 0,
+                                                        exerciseIndex: null)));
                                           },
                                           child: Container(
                                             width: getHorizontalSize(150, context),

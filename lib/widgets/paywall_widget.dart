@@ -60,7 +60,7 @@ class _PaywallWidgetState extends State<PaywallWidget> {
                       },
                       child: Icon(
                         Icons.close,
-                        size: 20,
+                        size: getSize(20, context),
                       ),
                     ),
                   ),
@@ -83,8 +83,8 @@ class _PaywallWidgetState extends State<PaywallWidget> {
             ),
           ),
           Container(
-            height: 90,
-            padding: EdgeInsets.fromLTRB(15, 20, 15, 25),
+            height: getVerticalSize(90, context),
+            padding: getPadding(context: context, left: 15, top: 20, right: 15, bottom: 25),
             decoration: BoxDecoration(color: AppColors.whiteColor1, boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.2),

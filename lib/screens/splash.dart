@@ -67,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> {
             // Main Image
             Center(
               child: Container(
-                padding: EdgeInsets.all(8),
+                padding: getPadding(context: context, all: 8),
                 height: getSize(225, context),
                 width: getSize(225, context),
                 decoration: BoxDecoration(
@@ -81,16 +81,16 @@ class _SplashScreenState extends State<SplashScreen> {
                       width: getHorizontalSize(100, context),
                       height: getVerticalSize(100, context),
                     ), // Adjust size as needed
-                    SizedBox(height: 15),
+                    SizedBox(height: getVerticalSize(15, context)),
                     Text(
                       'La Bonte',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: getFontSize(18, context),
                         fontWeight: FontWeight.bold,
                         color: AppColors.primaryColor,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: getVerticalSize(10, context)),
                     Text(
                       'Your standard French learning app.',
                       style: TextStyle(fontSize: getFontSize(11, context), fontWeight: FontWeight.w500),
@@ -102,9 +102,9 @@ class _SplashScreenState extends State<SplashScreen> {
             Spacer(),
             Text(
               'La Bonte', // Bottom branding text
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: getFontSize(18, context), fontWeight: FontWeight.bold, color: Colors.white),
             ),
-            SizedBox(height: 20), // Add spacing for bottom alignment
+            SizedBox(height: getVerticalSize(20, context)), // Add spacing for bottom alignment
           ],
         ),
       ),

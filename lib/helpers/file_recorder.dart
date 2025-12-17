@@ -1,10 +1,11 @@
-//import 'dart:developer';
+import 'dart:developer';
 import 'dart:io';
+import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 
 class FileRecorder {
-  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder(logLevel: Level.off);
 
   static Future<FileRecorder> create() async {
     final recorder = FileRecorder();
@@ -37,7 +38,7 @@ class FileRecorder {
     final size = await file.length();
     //log("📦 Final file size: $size bytes");
     if (size < 1000) {
-      // log("⚠️ File likely silent or too short.");
+      log("⚠️ File likely silent or too short.");
     }
     return stoppedPath;
   }

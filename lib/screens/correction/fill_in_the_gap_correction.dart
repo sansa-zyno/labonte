@@ -14,6 +14,7 @@ import 'package:french_app/screens/lesson_completed.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/top_bar.dart';
 import 'package:provider/provider.dart';
 
 class FillInTheGapCorrection extends StatefulWidget {
@@ -148,26 +149,12 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: appBarSpace),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 15),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.of(context).maybePop();
-                            },
-                            child: Icon(Icons.arrow_back),
-                          ),
-                          Spacer(),
-                          CustomText(
-                            text: widget.correction.lessonTitle,
-                            size: getFontSize(18, context),
-                            weight: FontWeight.w500,
-                          ),
-                          Spacer(),
-                        ],
-                      ),
+                    TopBar(
+                      type: widget.correction.type,
+                      title: widget.correction.lessonTitle,
+                      callBack: () {
+                        Navigator.of(context).maybePop();
+                      },
                     ),
                     SizedBox(height: getVerticalSize(15, context)),
                     AppConstants.buildHeaderUserSound(
@@ -175,7 +162,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                       icon: textToSpeechProvider.playerState == AudioPlayerState.playing
                           ? Image.asset(AppImages.userSound, width: getHorizontalSize(62, context), height: getVerticalSize(50, context))
                           : Padding(
-                              padding: const EdgeInsets.only(right: 8, top: 8),
+                              padding: getPadding(context: context, right: 8, top: 8),
                               child: Image.asset(AppImages.play, width: getHorizontalSize(54, context), height: getVerticalSize(41, context)),
                             ),
                       loading: textToSpeechProvider.loading,
@@ -192,7 +179,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                     SizedBox(height: getVerticalSize(15, context)),
                     CustomText(text: widget.correction.lessonInstruction, weight: FontWeight.w500),
                     SizedBox(height: getVerticalSize(15, context)),
-                    widget.correction.fillInTheGap!.type.contains('word-all')
+                    widget.correction.type.contains('word-all')
                         ? Expanded(
                             flex: 10,
                             child: ListView.separated(
@@ -275,7 +262,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                     onMatch: (m) {
                                       //final blanks = m.group(0)!.length;
                                       String prefix = matches.toList()[controllerIndex].group(1) ?? '';
-                                      if (widget.correction.fillInTheGap!.type.contains('sentence')) {
+                                      if (widget.correction.type.contains('sentence')) {
                                         //.trim() to fix extra spaces issue
                                         listOfUserInputs.add('$prefix${controllers[index][controllerIndex].text.trim()}'.toLowerCase());
                                         if (answers.isNotEmpty) {
@@ -287,16 +274,16 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                       spans.add(WidgetSpan(
                                           child: SizedBox(
                                               height: 20,
-                                              width: (widget.correction.fillInTheGap!.type.contains('sentence')
+                                              width: (widget.correction.type.contains('sentence')
                                                   ? ((answers[index].split(',')[controllerIndex].length * 5.0) + 50)
                                                   : 25.0),
                                               child: TextField(
                                                   readOnly: true,
                                                   controller: controllers[index][controllerIndex],
-                                                  maxLength: widget.correction.fillInTheGap!.type.contains('sentence')
+                                                  maxLength: widget.correction.type.contains('sentence')
                                                       ? answers[index].split(',')[controllerIndex].length + 2
                                                       : 1,
-                                                  textAlign: widget.correction.fillInTheGap!.type.contains('sentence')
+                                                  textAlign: widget.correction.type.contains('sentence')
                                                       ? prefix.isNotEmpty
                                                           ? TextAlign.start
                                                           : TextAlign.center
@@ -328,7 +315,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                                 WidgetSpan(
                                                     child: InkWell(
                                                         onTap: () {
-                                                          if (widget.correction.fillInTheGap!.type.contains('word-part')) {
+                                                          if (widget.correction.type.contains('word-part')) {
                                                             textToSpeechProvider.playPronunciation(answers[index]);
                                                           } else {
                                                             textToSpeechProvider.playPronunciation(correctText);
@@ -343,25 +330,23 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                                               ])),
                                             ),
                                             Spacer(),
-                                            if (widget.correction.fillInTheGap!.type.contains('word-part') &&
-                                                isWordPartTypeCorrect(finalText, answers[index]))
+                                            if (widget.correction.type.contains('word-part') && isWordPartTypeCorrect(finalText, answers[index]))
                                               Icon(Icons.check, color: Colors.green)
-                                            else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
+                                            else if (widget.correction.type.contains('sentence') &&
                                                 isSentenceTypeCorrect(listOfUserInputs, answers[index]))
                                               Icon(Icons.check, color: Colors.green)
                                             else
                                               Icon(Icons.cancel, color: AppColors.red)
                                           ],
                                         ),
-                                        if (widget.correction.fillInTheGap!.type.contains('word-part') &&
-                                            !isWordPartTypeCorrect(finalText, answers[index]))
+                                        if (widget.correction.type.contains('word-part') && !isWordPartTypeCorrect(finalText, answers[index]))
                                           Padding(
                                               padding: const EdgeInsets.only(left: 25, top: 8),
                                               child: Row(children: [
                                                 CustomText(text: 'Correct answer is ', color: Colors.black.withOpacity(0.8), weight: FontWeight.w500),
                                                 CustomText(text: answers[index], color: Colors.green, weight: FontWeight.w900)
                                               ]))
-                                        else if (widget.correction.fillInTheGap!.type.contains('sentence') &&
+                                        else if (widget.correction.type.contains('sentence') &&
                                             !isSentenceTypeCorrect(listOfUserInputs, answers[index]))
                                           Padding(
                                               padding: const EdgeInsets.only(left: 5, top: 8),
@@ -383,7 +368,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
                         color: AppColors.buttonColor,
                         onpressed: () {
                           double score = 0;
-                          if (widget.correction.fillInTheGap!.type.toString().contains('word-all')) {
+                          if (widget.correction.type.toString().contains('word-all')) {
                             score = correctAnswerCount / wordAllControllers.length;
                           } else {
                             score = correctAnswerCount / questions.length;
@@ -431,7 +416,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
   void _calculateCorrectAnswers() {
     correctAnswerCount = 0;
 
-    if (widget.correction.fillInTheGap!.type.contains('word-all')) {
+    if (widget.correction.type.contains('word-all')) {
       for (int i = 0; i < wordAllControllers.length; i++) {
         String combined = wordAllControllers[i].map((c) => c.text).join();
         if (isWordAllTypeCorrect(combined, answers[i])) {
@@ -454,7 +439,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
           onMatch: (m) {
             //final blanks = m.group(0)!.length;
             String prefix = matches.toList()[controllerIndex].group(1) ?? '';
-            if (widget.correction.fillInTheGap!.type.contains('sentence')) {
+            if (widget.correction.type.contains('sentence')) {
               //.trim() to fix extra spaces issue
               listOfUserInputs.add('$prefix${controllers[index][controllerIndex].text.trim()}'.toLowerCase());
             } else {
@@ -469,9 +454,9 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
           },
         );
         // Then:
-        if (widget.correction.fillInTheGap!.type.contains('word-part') && isWordPartTypeCorrect(finalText, answers[index])) {
+        if (widget.correction.type.contains('word-part') && isWordPartTypeCorrect(finalText, answers[index])) {
           correctAnswerCount++;
-        } else if (widget.correction.fillInTheGap!.type.contains('sentence') && isSentenceTypeCorrect(listOfUserInputs, answers[index])) {
+        } else if (widget.correction.type.contains('sentence') && isSentenceTypeCorrect(listOfUserInputs, answers[index])) {
           correctAnswerCount++;
         }
       }
@@ -505,7 +490,7 @@ class _FillInTheGapCorrectionState extends State<FillInTheGapCorrection> {
   /*getAIAnswersForEmptyAnswersInDB() async {
     RegExp blankRegex = RegExp(r'(\b\w’)?\s*_'); // capture optional prefix like m’, s’
     try {
-      if (widget.correction.fillInTheGap!.type.contains('sentence')) {
+      if (widget.correction.type.contains('sentence')) {
         if (widget.correction.fillInTheGap!.answers.every((element) => element == '')) {
           answers = [];
           setState(() {
