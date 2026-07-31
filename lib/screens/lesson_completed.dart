@@ -11,6 +11,7 @@ import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/subscription.dart';
+import 'package:french_app/services/ad_service.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
@@ -21,7 +22,12 @@ class LessonsCompleted extends StatefulWidget {
   final double totalScore;
   final Function({required BuildContext buildContext, double? score})? goToNext;
   final LessonData lessonData;
-  const LessonsCompleted({super.key, required this.isReview, required this.totalScore, this.goToNext, required this.lessonData});
+  const LessonsCompleted(
+      {super.key,
+      required this.isReview,
+      required this.totalScore,
+      this.goToNext,
+      required this.lessonData});
 
   @override
   State<LessonsCompleted> createState() => _LessonsCompletedState();
@@ -45,7 +51,8 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
     //log('total score is >>>>>> ${score}');
     maxScore = widget.lessonData.exercises.length;
     if (maxScore == 0) {
-      maxScore = 1; //Prevent NAN when it's no-exercise type of lesson e.g lesson 26
+      maxScore =
+          1; //Prevent NAN when it's no-exercise type of lesson e.g lesson 26
     }
     //log('max score is >>>>>> ${maxScore}');
     percentScore = ((score / maxScore) * 100).round();
@@ -56,11 +63,16 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
       titleInEnglish: widget.lessonData.subLessons[0]['titleEnglish'],
       currentSubLessonIndex: widget.lessonData.subLessons.length,
       currentExerciseIndex: widget.lessonData.exercises.length,
-      totalLessonIndex: widget.lessonData.subLessons.length + widget.lessonData.exercises.length,
+      totalLessonIndex: widget.lessonData.subLessons.length +
+          widget.lessonData.exercises.length,
       score: score,
       lastUpdateTime: DateTime.now(),
     );
-    DatabaseService.updateLessonProgressRemote(false, DatabaseService.currentUser!.uid, widget.lessonData.lessonIndex.toString(), lessonProgress);
+    DatabaseService.updateLessonProgressRemote(
+        false,
+        DatabaseService.currentUser!.uid,
+        widget.lessonData.lessonIndex.toString(),
+        lessonProgress);
     if (percentScore < 50) {
       Review review = Review(
           titleInFrench: widget.lessonData.subLessons[0]['title'],
@@ -68,15 +80,26 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
           lessonId: widget.lessonData.lessonIndex.toString(),
           lastReviewedAt: DateTime.timestamp(),
           reviewCount: 10);
-      DatabaseService.addLessonToReviews(DatabaseService.currentUser!.uid, review.lessonId, review);
+      DatabaseService.addLessonToReviews(
+          DatabaseService.currentUser!.uid, review.lessonId, review);
     } else {
-      DatabaseService.removeLessonFromReviews(DatabaseService.currentUser!.uid, widget.lessonData.lessonIndex.toString());
+      DatabaseService.removeLessonFromReviews(DatabaseService.currentUser!.uid,
+          widget.lessonData.lessonIndex.toString());
     }
+    // Trigger interstitial at this natural stopping point (lesson completed).
+    // Uses addPostFrameCallback so the UI renders before the ad appears,
+    // ensuring smooth transition without blocking navigation.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AdService>().showInterstitialIfReady();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
+    EntitlementProvider entitlementProvider =
+        Provider.of<EntitlementProvider>(context);
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -85,15 +108,23 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
           child: Column(
             children: [
               SizedBox(height: appBarSpace),
-              Image.asset('assets/images/gif2-nobg.gif', height: getSize(314, context)),
+              Image.asset('assets/images/gif2-nobg.gif',
+                  height: getSize(314, context)),
               SizedBox(height: getVerticalSize(15, context)),
-              widget.lessonData.exercises.isNotEmpty ? buildResultCard() : const SizedBox.shrink(),
-              widget.lessonData.exercises.isNotEmpty ? SizedBox(height: getVerticalSize(15, context)) : const SizedBox.shrink(),
+              widget.lessonData.exercises.isNotEmpty
+                  ? buildResultCard()
+                  : const SizedBox.shrink(),
+              widget.lessonData.exercises.isNotEmpty
+                  ? SizedBox(height: getVerticalSize(15, context))
+                  : const SizedBox.shrink(),
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xff5976BA), borderRadius: BorderRadius.circular(5)),
+                decoration: BoxDecoration(
+                    color: const Color(0xff5976BA),
+                    borderRadius: BorderRadius.circular(5)),
                 child: CustomText(
-                  text: 'You have successfully completed lesson ${widget.lessonData.lessonIndex}',
+                  text:
+                      'You have successfully completed lesson ${widget.lessonData.lessonIndex}',
                   color: Colors.white,
                   textAlign: TextAlign.center,
                 ),
@@ -120,7 +151,8 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
                       width: getHorizontalSize(250, context),
                       text: 'Repeat Lesson',
                       textColor: AppColors.primaryColor,
-                      border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                      border:
+                          Border.all(color: AppColors.primaryColor, width: 1.5),
                       onpressed: () {
                         changeScreenRemoveUntill(
                             context,
@@ -137,12 +169,15 @@ class _LessonsCompletedState extends State<LessonsCompleted> {
                       },
                     )
                   : const SizedBox.shrink(),
-              percentScore < 50 ? SizedBox(height: getVerticalSize(15, context)) : const SizedBox.shrink(),
+              percentScore < 50
+                  ? SizedBox(height: getVerticalSize(15, context))
+                  : const SizedBox.shrink(),
               CustomButton(
                 text: 'Continue',
                 color: AppColors.buttonColor,
                 onpressed: () async {
-                  if (widget.lessonData.exercises.isNotEmpty && widget.goToNext != null) {
+                  if (widget.lessonData.exercises.isNotEmpty &&
+                      widget.goToNext != null) {
                     widget.goToNext!(buildContext: context);
                   } else {
                     //Exercises is empty and goToNext is null

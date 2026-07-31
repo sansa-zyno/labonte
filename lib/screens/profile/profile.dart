@@ -19,7 +19,11 @@ import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/banner_ad_widget.dart';
+import 'package:french_app/modals/alert.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -34,9 +38,17 @@ class _ProfileState extends State<Profile> {
   bool canViewCertificate = false;
   getProgressAndReviews() async {
     if (DatabaseService.currentUser != null) {
-      final progressSnapshot = await _firestore.collection(_usersCollection).doc(DatabaseService.currentUser!.uid).collection('lessonProgress').get();
+      final progressSnapshot = await _firestore
+          .collection(_usersCollection)
+          .doc(DatabaseService.currentUser!.uid)
+          .collection('lessonProgress')
+          .get();
       if (progressSnapshot.docs.length >= 30) {
-        final reviewsSnapshot = await _firestore.collection(_usersCollection).doc(DatabaseService.currentUser!.uid).collection('reviews').get();
+        final reviewsSnapshot = await _firestore
+            .collection(_usersCollection)
+            .doc(DatabaseService.currentUser!.uid)
+            .collection('reviews')
+            .get();
         if (reviewsSnapshot.docs.isEmpty) {
           canViewCertificate = true;
           setState(() {});
@@ -56,7 +68,8 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     bool canGoback = Navigator.canPop(context);
     AppProvider appProvider = Provider.of<AppProvider>(context);
-    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
+    EntitlementProvider entitlementProvider =
+        Provider.of<EntitlementProvider>(context);
     String? period = entitlementProvider.entitlementInfo?.periodType.name;
     String? expiryTime = entitlementProvider.expiryTimeCalc();
     return Scaffold(
@@ -64,7 +77,8 @@ class _ProfileState extends State<Profile> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SizedBox(height: appBarSpace),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 InkWell(
@@ -72,18 +86,30 @@ class _ProfileState extends State<Profile> {
                       if (canGoback) {
                         Navigator.pop(context);
                       } else {
-                        changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
+                        changeScreenRemoveUntill(
+                            context, BottomNavbar(pageIndex: 0));
                       }
                     },
-                    child: Icon(Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios, size: getSize(20, context))),
+                    child: Icon(
+                        Platform.isAndroid
+                            ? Icons.arrow_back
+                            : Icons.arrow_back_ios,
+                        size: getSize(20, context))),
                 Spacer(),
-                CustomText(text: 'Profile', size: getFontSize(18, context), weight: FontWeight.w500),
+                CustomText(
+                    text: 'Profile',
+                    size: getFontSize(18, context),
+                    weight: FontWeight.w500),
                 Spacer(),
                 InkWell(
                     onTap: () {
-                      changeScreen(context, BottomNavbar(pageIndex: 3, newpage: SettingsScreen()));
+                      changeScreen(
+                          context,
+                          BottomNavbar(
+                              pageIndex: 3, newpage: SettingsScreen()));
                     },
-                    child: Icon(Icons.settings_outlined, size: getSize(20, context)))
+                    child: Icon(Icons.settings_outlined,
+                        size: getSize(20, context)))
               ]),
               SizedBox(height: getVerticalSize(15, context)),
               CustomText(text: 'Course Progress', weight: FontWeight.w600),
@@ -91,30 +117,42 @@ class _ProfileState extends State<Profile> {
               SizedBox(
                   height: getVerticalSize(130, context),
                   child: StreamBuilder<Map<String, LessonProgress>>(
-                      stream: DatabaseService.getUserLessonProgress(DatabaseService.currentUser!.uid),
+                      stream: DatabaseService.getUserLessonProgress(
+                          DatabaseService.currentUser!.uid),
                       builder: (context, snapshot) {
                         return snapshot.hasData
                             ? snapshot.data!.isNotEmpty
                                 ? ListView.builder(
                                     itemCount: snapshot.data!.length,
                                     shrinkWrap: true,
-                                    padding: EdgeInsets.symmetric(horizontal: 15),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 15),
                                     scrollDirection: Axis.horizontal,
                                     itemBuilder: (ctx, index) {
-                                      String lessonIndex = snapshot.data!.keys.toList()[index];
-                                      int subLessonIndex = snapshot.data![lessonIndex]!.currentSubLessonIndex;
-                                      int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
-                                      int partialLessonIndex = subLessonIndex + (exerciseIndex ?? 0);
-                                      int totalLessonIndex = snapshot.data![lessonIndex]!.totalLessonIndex;
+                                      String lessonIndex =
+                                          snapshot.data!.keys.toList()[index];
+                                      int subLessonIndex = snapshot
+                                          .data![lessonIndex]!
+                                          .currentSubLessonIndex;
+                                      int? exerciseIndex = snapshot
+                                          .data![lessonIndex]!
+                                          .currentExerciseIndex;
+                                      int partialLessonIndex =
+                                          subLessonIndex + (exerciseIndex ?? 0);
+                                      int totalLessonIndex = snapshot
+                                          .data![lessonIndex]!.totalLessonIndex;
 
                                       // ──────────────────────────────────────────────────────────────
                                       // Size of one circle (you can change this value freely)
-                                      final double circleSize = getSize(70.0, context);
+                                      final double circleSize =
+                                          getSize(70.0, context);
                                       // ──────────────────────────────────────────────────────────────
                                       return Padding(
-                                          padding: const EdgeInsets.only(right: 15, top: 3),
+                                          padding: const EdgeInsets.only(
+                                              right: 15, top: 3),
                                           child: SizedBox(
-                                              width: getHorizontalSize(70, context),
+                                              width: getHorizontalSize(
+                                                  70, context),
                                               child: Column(children: [
                                                 GestureDetector(
                                                   onTap: () {
@@ -122,14 +160,22 @@ class _ProfileState extends State<Profile> {
                                                         context,
                                                         BottomNavbar(
                                                             pageIndex: 1,
-                                                            newpage: DecisionScreen(
-                                                                isReview: false,
-                                                                previousPageIndex: 1,
-                                                                lessonData: null, //important
-                                                                lessonIndex: int.parse(lessonIndex),
-                                                                subLessonIndex: subLessonIndex,
-                                                                exerciseIndex: 0 //exerciseIndex,
-                                                                )));
+                                                            newpage:
+                                                                DecisionScreen(
+                                                                    isReview:
+                                                                        false,
+                                                                    previousPageIndex:
+                                                                        1,
+                                                                    lessonData:
+                                                                        null, //important
+                                                                    lessonIndex:
+                                                                        int.parse(
+                                                                            lessonIndex),
+                                                                    subLessonIndex:
+                                                                        subLessonIndex,
+                                                                    exerciseIndex:
+                                                                        0 //exerciseIndex,
+                                                                    )));
                                                   },
                                                   child: Stack(
                                                     alignment: Alignment.center,
@@ -138,9 +184,12 @@ class _ProfileState extends State<Profile> {
                                                       Container(
                                                         height: circleSize,
                                                         width: circleSize,
-                                                        decoration: BoxDecoration(
-                                                          color: AppColors.red2.withOpacity(0.2),
-                                                          shape: BoxShape.circle,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: AppColors.red2
+                                                              .withOpacity(0.2),
+                                                          shape:
+                                                              BoxShape.circle,
                                                         ),
                                                       ),
 
@@ -148,39 +197,58 @@ class _ProfileState extends State<Profile> {
                                                       SizedBox(
                                                         height: circleSize,
                                                         width: circleSize,
-                                                        child: CircularProgressIndicator(
-                                                          value: partialLessonIndex / totalLessonIndex,
-                                                          color: AppColors.red2.withOpacity(0.6),
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          value: partialLessonIndex /
+                                                              totalLessonIndex,
+                                                          color: AppColors.red2
+                                                              .withOpacity(0.6),
                                                         ),
                                                       ),
 
                                                       // Inner "L7", "L8" etc.
                                                       Container(
-                                                        height: getVerticalSize(30, context),
-                                                        width: getHorizontalSize(30, context),
-                                                        decoration: BoxDecoration(
-                                                          border: Border.all(color: Colors.black, width: 2),
+                                                        height: getVerticalSize(
+                                                            30, context),
+                                                        width:
+                                                            getHorizontalSize(
+                                                                30, context),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          border: Border.all(
+                                                              color:
+                                                                  Colors.black,
+                                                              width: 2),
                                                         ),
-                                                        alignment: Alignment.center,
+                                                        alignment:
+                                                            Alignment.center,
                                                         child: CustomText(
                                                           text: "L$lessonIndex",
-                                                          weight: FontWeight.w600,
-                                                          textAlign: TextAlign.center,
+                                                          weight:
+                                                              FontWeight.w600,
+                                                          textAlign:
+                                                              TextAlign.center,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
-                                                SizedBox(height: getVerticalSize(10, context)),
+                                                SizedBox(
+                                                    height: getVerticalSize(
+                                                        10, context)),
                                                 CustomText(
-                                                    text: partialLessonIndex < totalLessonIndex
+                                                    text: partialLessonIndex <
+                                                            totalLessonIndex
                                                         ? 'Lesson $lessonIndex in Progress'
                                                         : 'Lesson $lessonIndex is Completed',
                                                     size: 12,
                                                     textAlign: TextAlign.center)
                                               ])));
                                     })
-                                : Center(child: CustomText(text: 'You have not started any lesson'))
+                                : Center(
+                                    child: CustomText(
+                                        text:
+                                            'You have not started any lesson'))
                             : Center(child: CircularProgressIndicator());
                       })),
               SizedBox(height: getVerticalSize(20, context)),
@@ -191,36 +259,55 @@ class _ProfileState extends State<Profile> {
                       padding: getPadding(context: context, all: 8),
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: AppColors.blackColor1.withOpacity(0.1)),
+                          border: Border.all(
+                              color: AppColors.blackColor1.withOpacity(0.1)),
                           borderRadius: BorderRadius.circular(8)),
                       child: Row(children: [
                         CircleAvatar(
                             radius: getSize(20, context),
                             backgroundColor: Color(0xFFEEF3FF),
-                            child: Image.asset(AppIcons.practicewithAI, height: getSize(20, context))),
+                            child: Image.asset(AppIcons.practicewithAI,
+                                height: getSize(20, context))),
                         SizedBox(width: getHorizontalSize(8, context)),
                         Expanded(
-                            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          CustomText(text: 'Ask LaBonte AI', weight: FontWeight.bold, size: getFontSize(fontSizeMedium, context)),
-                          SizedBox(height: getVerticalSize(3, context)),
-                          CustomText(text: 'Get instant answers, corrections, and tips.', size: getFontSize(fontSizeSmall, context))
-                        ])),
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              CustomText(
+                                  text: 'Ask LaBonte AI',
+                                  weight: FontWeight.bold,
+                                  size: getFontSize(fontSizeMedium, context)),
+                              SizedBox(height: getVerticalSize(3, context)),
+                              CustomText(
+                                  text:
+                                      'Get instant answers, corrections, and tips.',
+                                  size: getFontSize(fontSizeSmall, context))
+                            ])),
                         SizedBox(width: getHorizontalSize(15, context)),
                         CustomButton(
                             text: 'Ask AI',
                             height: getVerticalSize(28, context),
                             color: AppColors.whiteColor1,
-                            padding: getPadding(context: context, left: 15, top: 5, right: 15, bottom: 5),
+                            padding: getPadding(
+                                context: context,
+                                left: 15,
+                                top: 5,
+                                right: 15,
+                                bottom: 5),
                             textSize: getFontSize(11, context),
                             textColor: AppColors.primaryColor,
-                            border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                            border: Border.all(
+                                color: AppColors.primaryColor, width: 1.5),
                             onpressed: () {
-                              changeScreenReplacement(context, BottomNavbar(pageIndex: 2));
+                              changeScreenReplacement(
+                                  context, BottomNavbar(pageIndex: 2));
                             })
                       ]))),
               SizedBox(height: getVerticalSize(20, context)),
               StreamBuilder<Map<String, LessonProgress>>(
-                  stream: DatabaseService.getUserLessonProgress(DatabaseService.currentUser!.uid),
+                  stream: DatabaseService.getUserLessonProgress(
+                      DatabaseService.currentUser!.uid),
                   builder: (context, snapshot) {
                     return snapshot.hasData
                         ? snapshot.data!.isNotEmpty
@@ -228,7 +315,9 @@ class _ProfileState extends State<Profile> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CustomText(text: 'Continue Learning', weight: FontWeight.w600),
+                                  CustomText(
+                                      text: 'Continue Learning',
+                                      weight: FontWeight.w600),
                                   SizedBox(height: getVerticalSize(8, context)),
                                   SizedBox(
                                     height: getVerticalSize(100, context),
@@ -238,8 +327,12 @@ class _ProfileState extends State<Profile> {
                                         padding: EdgeInsets.all(0),
                                         scrollDirection: Axis.horizontal,
                                         itemBuilder: (ctx, index) {
-                                          String lessonIndex = snapshot.data!.keys.toList()[index];
-                                          int subLessonIndex = snapshot.data![lessonIndex]!.currentSubLessonIndex;
+                                          String lessonIndex = snapshot
+                                              .data!.keys
+                                              .toList()[index];
+                                          int subLessonIndex = snapshot
+                                              .data![lessonIndex]!
+                                              .currentSubLessonIndex;
                                           //int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                           return GestureDetector(
                                             onTap: () {
@@ -250,37 +343,67 @@ class _ProfileState extends State<Profile> {
                                                       newpage: DecisionScreen(
                                                           isReview: false,
                                                           previousPageIndex: 1,
-                                                          lessonData: null, //important
-                                                          lessonIndex: int.parse(lessonIndex),
-                                                          subLessonIndex: subLessonIndex,
-                                                          exerciseIndex: 0 //exerciseIndex,
+                                                          lessonData:
+                                                              null, //important
+                                                          lessonIndex:
+                                                              int.parse(
+                                                                  lessonIndex),
+                                                          subLessonIndex:
+                                                              subLessonIndex,
+                                                          exerciseIndex:
+                                                              0 //exerciseIndex,
                                                           )));
                                             },
                                             child: Container(
                                                 height: double.infinity,
-                                                width: getHorizontalSize(150, context),
+                                                width: getHorizontalSize(
+                                                    150, context),
                                                 padding: EdgeInsets.all(8),
-                                                margin: EdgeInsets.only(right: 8),
+                                                margin:
+                                                    EdgeInsets.only(right: 8),
                                                 decoration: BoxDecoration(
-                                                    color: (index % 2) == 0 ? AppColors.red2.withOpacity(0.2) : AppColors.yellow.withOpacity(0.8),
-                                                    borderRadius: BorderRadius.circular(8)),
-                                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                                  CustomText(
-                                                      text: 'LECON ${snapshot.data!.keys.toList()[index]}',
-                                                      size: getFontSize(fontSizeSmall, context),
-                                                      weight: FontWeight.w600),
-                                                  const SizedBox(height: 5),
-                                                  CustomText(
-                                                    text: '${snapshot.data!.values.toList()[index].titleInFrench}'.split(':')[1].trim(),
-                                                    size: getFontSize(fontSizeExtraSmall, context),
-                                                    maxlines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  Spacer(),
-                                                  CustomText(
-                                                      text: '${snapshot.data!.values.toList()[index].titleInEnglish}',
-                                                      size: getFontSize(fontSizeExtraSmall, context))
-                                                ])),
+                                                    color: (index % 2) == 0
+                                                        ? AppColors.red2
+                                                            .withOpacity(0.2)
+                                                        : AppColors.yellow
+                                                            .withOpacity(0.8),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                                child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      CustomText(
+                                                          text:
+                                                              'LECON ${snapshot.data!.keys.toList()[index]}',
+                                                          size: getFontSize(
+                                                              fontSizeSmall,
+                                                              context),
+                                                          weight:
+                                                              FontWeight.w600),
+                                                      const SizedBox(height: 5),
+                                                      CustomText(
+                                                        text:
+                                                            '${snapshot.data!.values.toList()[index].titleInFrench}'
+                                                                .split(':')[1]
+                                                                .trim(),
+                                                        size: getFontSize(
+                                                            fontSizeExtraSmall,
+                                                            context),
+                                                        maxlines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      Spacer(),
+                                                      CustomText(
+                                                          text:
+                                                              '${snapshot.data!.values.toList()[index].titleInEnglish}',
+                                                          size: getFontSize(
+                                                              fontSizeExtraSmall,
+                                                              context))
+                                                    ])),
                                           );
                                         }),
                                   ),
@@ -289,14 +412,21 @@ class _ProfileState extends State<Profile> {
                             : AppConstants.emptyLessonProgress(context)
                         : Center(child: CircularProgressIndicator());
                   }),
-              canViewCertificate ? const SizedBox(height: 30) : const SizedBox(height: 10),
+              canViewCertificate
+                  ? const SizedBox(height: 30)
+                  : const SizedBox(height: 10),
               canViewCertificate
                   ? CustomButton(
                       text: 'View Certificate',
                       color: AppColors.buttonColor,
                       onpressed: () {
-                        if (entitlementProvider.entitlement == Entitlement.pro) {
-                          changeScreen(context, CertificateScreen(learnerName: '${appProvider.userModel?.name ?? 'N/A'}'));
+                        if (entitlementProvider.entitlement ==
+                            Entitlement.pro) {
+                          changeScreen(
+                              context,
+                              CertificateScreen(
+                                  learnerName:
+                                      '${appProvider.userModel?.name ?? 'N/A'}'));
                         } else {
                           changeScreen(context, Subscription());
                         }
@@ -306,16 +436,94 @@ class _ProfileState extends State<Profile> {
             ]),
           ),
           Spacer(),
-          Container(
-              alignment: Alignment.center,
-              height: getVerticalSize(50, context),
-              width: double.infinity,
-              decoration: BoxDecoration(color: AppColors.yellow.withOpacity(0.8)),
-              child: entitlementProvider.entitlementInfo == null
-                  ? CustomText(text: 'No active subscription')
-                  : expiryTime == null
-                      ? CustomText(text: 'Your ${period == null || period == 'trial' ? "free trial" : 'subscription'} has ended')
-                      : CustomText(text: 'Your ${period == null || period == 'trial' ? "free trial" : 'subscription'} will end in $expiryTime')),
+          // Banner ad — only visible to free-tier users.
+          // Renders as SizedBox.shrink() for subscribed users.
+          const BannerAdWidget(),
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: getHorizontalSize(15, context),
+                vertical: getVerticalSize(10, context)),
+            child: Material(
+              color: AppColors.yellow.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(getSize(12, context)),
+              elevation: 1,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(getSize(12, context)),
+                onTap: () async {
+                  if (entitlementProvider.entitlementInfo == null ||
+                      expiryTime == null) {
+                    changeScreen(context, Subscription());
+                  } else {
+                    bool result = await showDialog(
+                            context: context,
+                            builder: (ctx) => ShowDialogWidget(
+                                  isActionOptions: true,
+                                  titleText:
+                                      'Are you sure you want to cancel your subscription?',
+                                  subText: "",
+                                )) ??
+                        false;
+
+                    if (result) {
+                      try {
+                        final customerInfo = await Purchases.getCustomerInfo();
+                        final managementUrl = customerInfo.managementURL;
+                        if (managementUrl != null && managementUrl.isNotEmpty) {
+                          await launchUrl(Uri.parse(managementUrl));
+                        } else {
+                          if (Platform.isAndroid) {
+                            await launchUrl(Uri.parse(
+                                'https://play.google.com/store/account/subscriptions'));
+                          } else {
+                            await launchUrl(Uri.parse(
+                                'https://apps.apple.com/account/subscriptions'));
+                          }
+                        }
+                        await Purchases.invalidateCustomerInfoCache();
+                        await Purchases.getCustomerInfo();
+                      } catch (e) {
+                        showDialog(
+                            context: context,
+                            builder: (ctx) => ShowDialogWidget(
+                                titleText: e.toString(), subText: ""));
+                      }
+                    }
+                  }
+                },
+                child: Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: getHorizontalSize(15, context)),
+                    height: getVerticalSize(55, context),
+                    width: double.infinity,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: entitlementProvider.entitlementInfo == null
+                              ? CustomText(
+                                  text: 'No active subscription',
+                                  textAlign: TextAlign.center,
+                                  weight: FontWeight.w500)
+                              : expiryTime != null
+                                  ? CustomText(
+                                      text:
+                                          'Your ${period == null || period == 'trial' ? "free trial" : 'subscription'} will end in $expiryTime',
+                                      textAlign: TextAlign.center,
+                                      weight: FontWeight.w500)
+                                  : CustomText(
+                                      text:
+                                          'Your ${period == null || period == 'trial' ? "free trial" : 'subscription'} has ended',
+                                      textAlign: TextAlign.center,
+                                      weight: FontWeight.w500),
+                        ),
+                        Icon(Icons.arrow_forward_ios,
+                            size: getSize(16, context), color: Colors.black87),
+                      ],
+                    )),
+              ),
+            ),
+          ),
           Spacer(),
         ],
       ),

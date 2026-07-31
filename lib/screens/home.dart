@@ -19,6 +19,7 @@ import 'package:french_app/screens/subscription.dart';
 import 'package:french_app/services/database.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
+import 'package:french_app/widgets/banner_ad_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,9 +36,12 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     AppProvider appProvider = Provider.of<AppProvider>(context);
-    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
+    EntitlementProvider entitlementProvider =
+        Provider.of<EntitlementProvider>(context);
     return AnnotatedRegion(
-      value: const SystemUiOverlayStyle(statusBarColor: AppColors.whiteColor1, systemNavigationBarColor: AppColors.whiteColor1),
+      value: const SystemUiOverlayStyle(
+          statusBarColor: AppColors.whiteColor1,
+          systemNavigationBarColor: AppColors.whiteColor1),
       child: Scaffold(
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -56,9 +60,13 @@ class _HomeState extends State<Home> {
                         weight: FontWeight.w600),
                     InkWell(
                       onTap: () async {
-                        changeScreen(context, BottomNavbar(pageIndex: 3, newpage: const Profile()));
+                        changeScreen(
+                            context,
+                            BottomNavbar(
+                                pageIndex: 3, newpage: const Profile()));
                         //////////////////////////////////////////////////////////
-                        String? expiryTime = entitlementProvider.expiryTimeCalc();
+                        String? expiryTime =
+                            entitlementProvider.expiryTimeCalc();
                         if (expiryTime == null) {
                           //Subcription has expired
                           //Clear the cache immediately and fetch new customerInfo from network
@@ -90,12 +98,16 @@ class _HomeState extends State<Home> {
                         height: getVerticalSize(219, context),
                         width: double.infinity,
                       ),
-                      Positioned(bottom: 0, right: 12, child: Image.asset(AppImages.girl2)),
+                      Positioned(
+                          bottom: 0,
+                          right: 12,
+                          child: Image.asset(AppImages.girl2)),
                       Positioned(
                           top: getVerticalSize(30, context),
                           left: getHorizontalSize(10, context),
                           child: CustomText(
-                              text: 'LECON ${appProvider.continueLessonData?.lessonIndex ?? 1} 0f 30',
+                              text:
+                                  'LECON ${appProvider.continueLessonData?.lessonIndex ?? 1} 0f 30',
                               size: getFontSize(fontSizeSmall, context),
                               weight: FontWeight.w500,
                               color: AppColors.whiteColor1)),
@@ -117,8 +129,12 @@ class _HomeState extends State<Home> {
                             padding: EdgeInsets.symmetric(horizontal: 15),
                             color: AppColors.whiteColor1,
                             textColor: AppColors.primaryColor,
-                            text: appProvider.continueLessonData == null ? 'Start Now' : 'Continue',
-                            icon: Image.asset(AppImages.play, color: AppColors.primaryColor, height: getSize(15, context)),
+                            text: appProvider.continueLessonData == null
+                                ? 'Start Now'
+                                : 'Continue',
+                            icon: Image.asset(AppImages.play,
+                                color: AppColors.primaryColor,
+                                height: getSize(15, context)),
                             onpressed: () {
                               changeScreen(
                                   context,
@@ -127,10 +143,16 @@ class _HomeState extends State<Home> {
                                       newpage: DecisionScreen(
                                           isReview: appProvider.isReview,
                                           previousPageIndex: 1,
-                                          lessonData: appProvider.continueLessonData,
-                                          lessonIndex: appProvider.continueLessonData?.lessonIndex ?? 1,
-                                          subLessonIndex: appProvider.continueSubLessonIndex,
-                                          exerciseIndex: 0 //appProvider.continueExerciseIndex,
+                                          lessonData:
+                                              appProvider.continueLessonData,
+                                          lessonIndex: appProvider
+                                                  .continueLessonData
+                                                  ?.lessonIndex ??
+                                              1,
+                                          subLessonIndex: appProvider
+                                              .continueSubLessonIndex,
+                                          exerciseIndex:
+                                              0 //appProvider.continueExerciseIndex,
                                           )));
                             },
                           ))
@@ -139,15 +161,19 @@ class _HomeState extends State<Home> {
                 ),
                 SizedBox(height: getVerticalSize(15, context)),
                 StreamBuilder<Map<String, LessonProgress>>(
-                    stream: DatabaseService.getUserLessonProgress(DatabaseService.currentUser!.uid),
+                    stream: DatabaseService.getUserLessonProgress(
+                        DatabaseService.currentUser!.uid),
                     builder: (context, snapshot) {
                       return snapshot.hasData
                           ? snapshot.data!.isNotEmpty
                               ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    CustomText(text: 'Continue Learning', weight: FontWeight.w600),
-                                    SizedBox(height: getVerticalSize(8, context)),
+                                    CustomText(
+                                        text: 'Continue Learning',
+                                        weight: FontWeight.w600),
+                                    SizedBox(
+                                        height: getVerticalSize(8, context)),
                                     SizedBox(
                                       height: getVerticalSize(100, context),
                                       child: ListView.builder(
@@ -156,8 +182,12 @@ class _HomeState extends State<Home> {
                                           padding: EdgeInsets.all(0),
                                           scrollDirection: Axis.horizontal,
                                           itemBuilder: (ctx, index) {
-                                            String lessonIndex = snapshot.data!.keys.toList()[index];
-                                            int subLessonIndex = snapshot.data![lessonIndex]!.currentSubLessonIndex;
+                                            String lessonIndex = snapshot
+                                                .data!.keys
+                                                .toList()[index];
+                                            int subLessonIndex = snapshot
+                                                .data![lessonIndex]!
+                                                .currentSubLessonIndex;
                                             //int? exerciseIndex = snapshot.data![lessonIndex]!.currentExerciseIndex;
                                             return GestureDetector(
                                               onTap: () {
@@ -167,37 +197,69 @@ class _HomeState extends State<Home> {
                                                         pageIndex: 1,
                                                         newpage: DecisionScreen(
                                                             isReview: false,
-                                                            previousPageIndex: 1,
-                                                            lessonData: null, //important
-                                                            lessonIndex: int.parse(lessonIndex),
-                                                            subLessonIndex: subLessonIndex,
-                                                            exerciseIndex: 0 //exerciseIndex,
+                                                            previousPageIndex:
+                                                                1,
+                                                            lessonData:
+                                                                null, //important
+                                                            lessonIndex:
+                                                                int.parse(
+                                                                    lessonIndex),
+                                                            subLessonIndex:
+                                                                subLessonIndex,
+                                                            exerciseIndex:
+                                                                0 //exerciseIndex,
                                                             )));
                                               },
                                               child: Container(
-                                                  width: getHorizontalSize(150, context),
+                                                  width: getHorizontalSize(
+                                                      150, context),
                                                   padding: EdgeInsets.all(8),
-                                                  margin: EdgeInsets.only(right: 8),
+                                                  margin:
+                                                      EdgeInsets.only(right: 8),
                                                   decoration: BoxDecoration(
-                                                      color: (index % 2) == 0 ? AppColors.red2.withOpacity(0.2) : AppColors.yellow.withOpacity(0.8),
-                                                      borderRadius: BorderRadius.circular(8)),
-                                                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                                    CustomText(
-                                                        text: 'LECON ${snapshot.data!.keys.toList()[index]}',
-                                                        size: getFontSize(fontSizeSmall, context),
-                                                        weight: FontWeight.w600),
-                                                    const SizedBox(height: 5),
-                                                    CustomText(
-                                                      text: '${snapshot.data!.values.toList()[index].titleInFrench}'.split(':')[1].trim(),
-                                                      size: getFontSize(fontSizeExtraSmall, context),
-                                                      maxlines: 2,
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                    Spacer(),
-                                                    CustomText(
-                                                        text: '${snapshot.data!.values.toList()[index].titleInEnglish}',
-                                                        size: getFontSize(fontSizeExtraSmall, context)),
-                                                  ])),
+                                                      color: (index % 2) == 0
+                                                          ? AppColors.red2
+                                                              .withOpacity(0.2)
+                                                          : AppColors.yellow
+                                                              .withOpacity(0.8),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8)),
+                                                  child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        CustomText(
+                                                            text:
+                                                                'LECON ${snapshot.data!.keys.toList()[index]}',
+                                                            size: getFontSize(
+                                                                fontSizeSmall,
+                                                                context),
+                                                            weight: FontWeight
+                                                                .w600),
+                                                        const SizedBox(
+                                                            height: 5),
+                                                        CustomText(
+                                                          text:
+                                                              '${snapshot.data!.values.toList()[index].titleInFrench}'
+                                                                  .split(':')[1]
+                                                                  .trim(),
+                                                          size: getFontSize(
+                                                              fontSizeExtraSmall,
+                                                              context),
+                                                          maxlines: 2,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                        Spacer(),
+                                                        CustomText(
+                                                            text:
+                                                                '${snapshot.data!.values.toList()[index].titleInEnglish}',
+                                                            size: getFontSize(
+                                                                fontSizeExtraSmall,
+                                                                context)),
+                                                      ])),
                                             );
                                           }),
                                     ),
@@ -214,38 +276,53 @@ class _HomeState extends State<Home> {
                     padding: getPadding(context: context, all: 8),
                     decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: AppColors.blackColor1.withOpacity(0.1)),
+                        border: Border.all(
+                            color: AppColors.blackColor1.withOpacity(0.1)),
                         borderRadius: BorderRadius.circular(8)),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: getSize(20, context),
                           backgroundColor: Color(0xFFEEF3FF),
-                          child: Image.asset(AppIcons.practicewithAI, height: getSize(20, context)),
+                          child: Image.asset(AppIcons.practicewithAI,
+                              height: getSize(20, context)),
                         ),
                         SizedBox(width: getHorizontalSize(8, context)),
                         Expanded(
-                          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            CustomText(
-                              text: 'Ask LaBonte AI',
-                              weight: FontWeight.bold,
-                              size: getFontSize(fontSizeMedium, context),
-                            ),
-                            SizedBox(height: getVerticalSize(3, context)),
-                            CustomText(text: 'Get instant answers, corrections, and tips.', size: getFontSize(fontSizeSmall, context))
-                          ]),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  text: 'Ask LaBonte AI',
+                                  weight: FontWeight.bold,
+                                  size: getFontSize(fontSizeMedium, context),
+                                ),
+                                SizedBox(height: getVerticalSize(3, context)),
+                                CustomText(
+                                    text:
+                                        'Get instant answers, corrections, and tips.',
+                                    size: getFontSize(fontSizeSmall, context))
+                              ]),
                         ),
                         SizedBox(width: getHorizontalSize(15, context)),
                         CustomButton(
                           text: 'Ask AI',
                           height: getVerticalSize(28, context),
                           color: AppColors.whiteColor1,
-                          padding: getPadding(context: context, left: 15, top: 5, right: 15, bottom: 5),
+                          padding: getPadding(
+                              context: context,
+                              left: 15,
+                              top: 5,
+                              right: 15,
+                              bottom: 5),
                           textSize: getFontSize(11, context),
                           textColor: AppColors.primaryColor,
-                          border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                          border: Border.all(
+                              color: AppColors.primaryColor, width: 1.5),
                           onpressed: () {
-                            changeScreenReplacement(context, BottomNavbar(pageIndex: 2));
+                            changeScreenReplacement(
+                                context, BottomNavbar(pageIndex: 2));
                           },
                         )
                       ],
@@ -259,7 +336,8 @@ class _HomeState extends State<Home> {
                   width: double.infinity,
                   padding: getPadding(context: context, all: 12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.red2.withOpacity(0.2), width: 1),
+                    border: Border.all(
+                        color: AppColors.red2.withOpacity(0.2), width: 1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -269,10 +347,12 @@ class _HomeState extends State<Home> {
                         alignment: Alignment.centerRight,
                         child: Container(
                           width: getHorizontalSize(90, context),
-                          padding: getPadding(context: context, top: 4, bottom: 4),
+                          padding:
+                              getPadding(context: context, top: 4, bottom: 4),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.red2.withOpacity(0.3)),
+                            border: Border.all(
+                                color: AppColors.red2.withOpacity(0.3)),
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: CustomText(
@@ -290,7 +370,8 @@ class _HomeState extends State<Home> {
                           CircleAvatar(
                             radius: getSize(20, context),
                             backgroundColor: AppColors.lightGrey2,
-                            child: Image.asset(AppIcons.user2, height: getSize(24, context)),
+                            child: Image.asset(AppIcons.user2,
+                                height: getSize(24, context)),
                           ),
                           SizedBox(width: 8),
                           Expanded(
@@ -305,31 +386,41 @@ class _HomeState extends State<Home> {
                                 SizedBox(height: getVerticalSize(4, context)),
                                 Row(
                                   children: [
-                                    Image.asset(AppIcons.timer, height: getSize(12, context)),
+                                    Image.asset(AppIcons.timer,
+                                        height: getSize(12, context)),
                                     SizedBox(width: 3),
                                     CustomText(
                                       text: '30min \u2013 2hrs',
                                       size: getFontSize(fontSizeSmall, context),
-                                      color: AppColors.blackColor2.withOpacity(0.8),
+                                      color: AppColors.blackColor2
+                                          .withOpacity(0.8),
                                     ),
                                   ],
                                 ),
                                 SizedBox(height: getVerticalSize(6, context)),
                                 Container(
                                   width: getHorizontalSize(64, context),
-                                  padding: getPadding(context: context, top: 4, bottom: 4),
+                                  padding: getPadding(
+                                      context: context, top: 4, bottom: 4),
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.blackColor1.withOpacity(0.4)),
+                                    border: Border.all(
+                                        color: AppColors.blackColor1
+                                            .withOpacity(0.4)),
                                     borderRadius: BorderRadius.circular(24),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.person_3, size: getSize(12, context)),
-                                      SizedBox(width: getHorizontalSize(3, context)),
-                                      CustomText(text: 'Private', size: getFontSize(fontSizeExtraSmall, context))
+                                      Icon(Icons.person_3,
+                                          size: getSize(12, context)),
+                                      SizedBox(
+                                          width: getHorizontalSize(3, context)),
+                                      CustomText(
+                                          text: 'Private',
+                                          size: getFontSize(
+                                              fontSizeExtraSmall, context))
                                     ],
                                   ),
                                 )
@@ -346,8 +437,10 @@ class _HomeState extends State<Home> {
                         textSize: getFontSize(fontSizeSmall, context),
                         color: AppColors.buttonColor,
                         onpressed: () {
-                          if (entitlementProvider.entitlement == Entitlement.pro) {
-                            launchCalendryUrl('labontelanguages-info/new-meeting');
+                          if (entitlementProvider.entitlement ==
+                              Entitlement.pro) {
+                            launchCalendryUrl(
+                                'labontelanguages-info/new-meeting');
                           } else {
                             changeScreen(context, Subscription());
                           }
@@ -362,7 +455,8 @@ class _HomeState extends State<Home> {
                 SizedBox(
                   height: getVerticalSize(100, context),
                   child: StreamBuilder<List<Review>>(
-                      stream: DatabaseService.getUserReviews(DatabaseService.currentUser!.uid),
+                      stream: DatabaseService.getUserReviews(
+                          DatabaseService.currentUser!.uid),
                       builder: (context, snapshot) {
                         return snapshot.hasData
                             ? snapshot.data!.isNotEmpty
@@ -371,7 +465,8 @@ class _HomeState extends State<Home> {
                                     shrinkWrap: true,
                                     padding: EdgeInsets.all(0),
                                     scrollDirection: Axis.horizontal,
-                                    itemBuilder: (ctx, index) => GestureDetector(
+                                    itemBuilder: (ctx, index) =>
+                                        GestureDetector(
                                           onTap: () {
                                             changeScreen(
                                                 context,
@@ -380,44 +475,74 @@ class _HomeState extends State<Home> {
                                                     newpage: DecisionScreen(
                                                         isReview: true,
                                                         previousPageIndex: 1,
-                                                        lessonData: null, //important
-                                                        lessonIndex: int.parse(snapshot.data![index].lessonId),
+                                                        lessonData:
+                                                            null, //important
+                                                        lessonIndex: int.parse(
+                                                            snapshot
+                                                                .data![index]
+                                                                .lessonId),
                                                         subLessonIndex: 0,
                                                         exerciseIndex: null)));
                                           },
                                           child: Container(
-                                            width: getHorizontalSize(150, context),
+                                            width:
+                                                getHorizontalSize(150, context),
                                             height: double.infinity,
                                             padding: EdgeInsets.all(8),
                                             margin: EdgeInsets.only(right: 8),
                                             decoration: BoxDecoration(
-                                                color: (index % 2) == 0 ? AppColors.red2.withOpacity(0.2) : AppColors.yellow.withOpacity(0.8),
-                                                borderRadius: BorderRadius.circular(8)),
+                                                color: (index % 2) == 0
+                                                    ? AppColors.red2
+                                                        .withOpacity(0.2)
+                                                    : AppColors.yellow
+                                                        .withOpacity(0.8),
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 CustomText(
-                                                    text: 'LECON ${snapshot.data![index].lessonId}',
-                                                    size: getFontSize(fontSizeSmall, context),
+                                                    text:
+                                                        'LECON ${snapshot.data![index].lessonId}',
+                                                    size: getFontSize(
+                                                        fontSizeSmall, context),
                                                     weight: FontWeight.w600),
                                                 const SizedBox(height: 5),
                                                 CustomText(
-                                                  text: '${snapshot.data![index].titleInFrench}'.split(':')[1].trim(),
-                                                  size: getFontSize(fontSizeExtraSmall, context),
+                                                  text:
+                                                      '${snapshot.data![index].titleInFrench}'
+                                                          .split(':')[1]
+                                                          .trim(),
+                                                  size: getFontSize(
+                                                      fontSizeExtraSmall,
+                                                      context),
                                                   maxlines: 2,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                                 Spacer(),
                                                 CustomText(
-                                                    text: '${snapshot.data![index].titleInEnglish}', size: getFontSize(fontSizeExtraSmall, context)),
+                                                    text:
+                                                        '${snapshot.data![index].titleInEnglish}',
+                                                    size: getFontSize(
+                                                        fontSizeExtraSmall,
+                                                        context)),
                                               ],
                                             ),
                                           ),
                                         ))
-                                : Center(child: CustomText(text: 'You have not completed any lesson'))
+                                : Center(
+                                    child: CustomText(
+                                        text:
+                                            'You have not completed any lesson'))
                             : Center(child: CircularProgressIndicator());
                       }),
                 ),
+                const SizedBox(height: 10),
+                // Banner ad — only visible to free-tier users.
+                // Renders as SizedBox.shrink() for subscribed users.
+                const BannerAdWidget(),
                 const SizedBox(height: 10),
               ],
             ),

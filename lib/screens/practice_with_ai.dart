@@ -13,6 +13,7 @@ import 'package:french_app/services/gemini_service.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:french_app/widgets/custom_textfield.dart';
+import 'package:french_app/widgets/banner_ad_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
@@ -61,6 +62,7 @@ class _PracticeiWithAIState extends State<PracticeiWithAI> {
     bool canGoback = Navigator.canPop(context);
     EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
     return Scaffold(
+      bottomNavigationBar: const BannerAdWidget(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
