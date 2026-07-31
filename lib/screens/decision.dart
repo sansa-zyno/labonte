@@ -228,7 +228,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
 
   // Go to the next sub-lesson or exercise
   void goToNext({required BuildContext buildContext, double? score}) async {
-    if (widget.lessonIndex != 1 && entitlementProvider.entitlement != Entitlement.pro) {
+    if (widget.lessonIndex > 3 && entitlementProvider.entitlement != Entitlement.pro) {
       changeScreen(buildContext, Subscription());
       return;
     }
@@ -380,7 +380,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
 
   // Go back to the previous sub-lesson, exercise, or lesson
   void goToBack({required BuildContext buildContext}) async {
-    if (widget.lessonIndex != 1 && entitlementProvider.entitlement != Entitlement.pro) {
+    if (widget.lessonIndex > 3 && entitlementProvider.entitlement != Entitlement.pro) {
       changeScreen(buildContext, Subscription());
       return;
     }
