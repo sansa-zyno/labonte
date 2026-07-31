@@ -22,7 +22,10 @@ class DatabaseService {
   // set user
   static Future<void> createUser(String userId, UserModel user) async {
     try {
-      await _firestore.collection(_usersCollection).doc(userId).set(user.toMap());
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .set(user.toMap());
     } catch (e) {
       //print('Error setting user: $e');
       rethrow;
@@ -32,7 +35,10 @@ class DatabaseService {
   // Update user
   static Future<void> updateUser(String userId, UserModel user) async {
     try {
-      await _firestore.collection(_usersCollection).doc(userId).update(user.toMap());
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .update(user.toMap());
     } catch (e) {
       //print('Error updating user: $e');
       rethrow;
@@ -40,9 +46,13 @@ class DatabaseService {
   }
 
   // Update user subscription status
-  static Future<void> updateUserSubscriptionStatus(String userId, isSubscribed) async {
+  static Future<void> updateUserSubscriptionStatus(
+      String userId, isSubscribed) async {
     try {
-      await _firestore.collection(_usersCollection).doc(userId).update({'isSubscribed': isSubscribed});
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .update({'isSubscribed': isSubscribed});
     } catch (e) {
       // print('Error updating User Subscription Status: $e');
       rethrow;
@@ -52,7 +62,8 @@ class DatabaseService {
   // Get user by ID
   static Future<UserModel?> getUser(String userId) async {
     try {
-      final doc = await _firestore.collection(_usersCollection).doc(userId).get();
+      final doc =
+          await _firestore.collection(_usersCollection).doc(userId).get();
       if (doc.exists) {
         return UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       }
@@ -95,7 +106,8 @@ class DatabaseService {
       required int totalLessonIndex,
       required double score,
       required DateTime lastUpdateTime}) async {
-    final Map<String, Map<String, dynamic>> progress = await getLocalSavedLessonsProgress();
+    final Map<String, Map<String, dynamic>> progress =
+        await getLocalSavedLessonsProgress();
     progress[lessonIndex] = {
       'titleInFrench': lessonData.subLessons[0]['title'],
       'titleInEnglish': lessonData.subLessons[0]['titleEnglish'],
@@ -111,7 +123,8 @@ class DatabaseService {
       Provider.of<AppProvider>(context, listen: false).continueSubLessonIndex = currentSubLessonIndex;
       Provider.of<AppProvider>(context, listen: false).continueExerciseIndex = currentExerciseIndex;
     }*/
-    await LocalStorage().setString('savedLessonsProgress', jsonEncode(progress));
+    await LocalStorage()
+        .setString('savedLessonsProgress', jsonEncode(progress));
     //log('Time Difference   ' + DateTime.now().difference(_lastSyncedLessonProgress).inSeconds.toString());
     if (DateTime.now().difference(_lastSyncedLessonProgress).inSeconds > 30) {
       LessonProgress lessonProgress = LessonProgress(
@@ -123,15 +136,21 @@ class DatabaseService {
         score: score,
         lastUpdateTime: lastUpdateTime,
       );
-      await updateLessonProgressRemote(false, currentUser!.uid, lessonData.lessonIndex.toString(), lessonProgress);
+      await updateLessonProgressRemote(false, currentUser!.uid,
+          lessonData.lessonIndex.toString(), lessonProgress);
       _lastSyncedLessonProgress = DateTime.now();
     }
   }
 
   // update user's lesson progress on firestore
-  static Future<void> updateLessonProgressRemote(bool isOnStartLesson, String userId, String lessonId, LessonProgress lessonProgress) async {
+  static Future<void> updateLessonProgressRemote(bool isOnStartLesson,
+      String userId, String lessonId, LessonProgress lessonProgress) async {
     try {
-      DocumentReference ref = await _firestore.collection(_usersCollection).doc(userId).collection('lessonProgress').doc(lessonId);
+      DocumentReference ref = await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('lessonProgress')
+          .doc(lessonId);
       if (isOnStartLesson) {
         DocumentSnapshot doc = await ref.get();
         //To prevent resetting data progress always
@@ -143,6 +162,12 @@ class DatabaseService {
         //To update lesson data
         await ref.set(lessonProgress.toMap());
       }
+      // Update user's lastActive activity timestamp in Firestore
+      await _firestore.collection(_usersCollection).doc(userId).update({
+        'lastActive': FieldValue.serverTimestamp(),
+      }).catchError((e) {
+        // Ignore cases where the user document does not exist yet
+      });
     } catch (e) {
       //print('Error updating lesson progress: $e');
       rethrow;
@@ -150,9 +175,12 @@ class DatabaseService {
   }
 
 //Get local lesson progress
-  static Future<Map<String, Map<String, dynamic>>> getLocalSavedLessonsProgress() async {
-    String? savedLessonsProgress = await LocalStorage().getString('savedLessonsProgress');
-    final Map<String, dynamic> rawData = savedLessonsProgress != null ? jsonDecode(savedLessonsProgress) : {};
+  static Future<Map<String, Map<String, dynamic>>>
+      getLocalSavedLessonsProgress() async {
+    String? savedLessonsProgress =
+        await LocalStorage().getString('savedLessonsProgress');
+    final Map<String, dynamic> rawData =
+        savedLessonsProgress != null ? jsonDecode(savedLessonsProgress) : {};
     /*final Map<String, Map<String, num?>> progress = rawData.map((key, value) {
       if (value is Map<String, dynamic>) {
         final innerMap = value.map((k, v) => MapEntry(k, v is num ? v : null));
@@ -161,17 +189,24 @@ class DatabaseService {
         return MapEntry(key, {});
       }
     });*/
-    final Map<String, Map<String, dynamic>> progress = rawData.map((key, value) => MapEntry(key, value));
+    final Map<String, Map<String, dynamic>> progress =
+        rawData.map((key, value) => MapEntry(key, value));
     return progress;
   }
 
   // Get user's lesson progress Local + Remote
-  static Stream<Map<String, LessonProgress>> getUserLessonProgress(String userId) async* {
+  static Stream<Map<String, LessonProgress>> getUserLessonProgress(
+      String userId) async* {
     try {
       // Local data load happens only once at the start
-      final Map<String, Map<String, dynamic>> localData = await getLocalSavedLessonsProgress();
+      final Map<String, Map<String, dynamic>> localData =
+          await getLocalSavedLessonsProgress();
       // Firestore snapshot stream
-      final firestoreStream = _firestore.collection(_usersCollection).doc(userId).collection('lessonProgress').snapshots();
+      final firestoreStream = _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('lessonProgress')
+          .snapshots();
       // Listen for Firestore updates
       await for (final snapshot in firestoreStream) {
         final Map<String, LessonProgress> progressMap = {};
@@ -187,15 +222,21 @@ class DatabaseService {
         localData.forEach((lessonIndex, localProgress) {
           int localLastUpdateTime = localProgress['lastUpdateTime'] ?? 0;
           // log('localTime${localLastUpdateTime}*******remoteTime>>>${merged[lessonIndex]?.lastUpdateTime.millisecondsSinceEpoch ?? 0}');
-          if (!merged.containsKey(lessonIndex) || localLastUpdateTime > (merged[lessonIndex]?.lastUpdateTime.millisecondsSinceEpoch ?? 0)) {
+          if (!merged.containsKey(lessonIndex) ||
+              localLastUpdateTime >
+                  (merged[lessonIndex]?.lastUpdateTime.millisecondsSinceEpoch ??
+                      0)) {
             merged[lessonIndex] = LessonProgress(
               titleInFrench: localProgress['titleInFrench'].toString(),
               titleInEnglish: localProgress['titleInEnglish'].toString(),
-              currentSubLessonIndex: localProgress['currentSubLessonIndex']?.toInt() ?? 0,
-              currentExerciseIndex: localProgress['currentExerciseIndex']?.toInt(),
+              currentSubLessonIndex:
+                  localProgress['currentSubLessonIndex']?.toInt() ?? 0,
+              currentExerciseIndex:
+                  localProgress['currentExerciseIndex']?.toInt(),
               totalLessonIndex: localProgress['totalLessonIndex']?.toInt() ?? 1,
               score: localProgress['score']?.toDouble() ?? 0,
-              lastUpdateTime: DateTime.fromMillisecondsSinceEpoch(localProgress['lastUpdateTime']?.toInt() ?? 0),
+              lastUpdateTime: DateTime.fromMillisecondsSinceEpoch(
+                  localProgress['lastUpdateTime']?.toInt() ?? 0),
             );
           }
         });
@@ -208,9 +249,15 @@ class DatabaseService {
   }
 
   // Add lesson to user's review
-  static Future<void> addLessonToReviews(String userId, String lessonId, Review review) async {
+  static Future<void> addLessonToReviews(
+      String userId, String lessonId, Review review) async {
     try {
-      await _firestore.collection(_usersCollection).doc(userId).collection('reviews').doc(lessonId).set(review.toMap());
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('reviews')
+          .doc(lessonId)
+          .set(review.toMap());
     } catch (e) {
       //print('Error adding to reviews: $e');
       rethrow;
@@ -220,7 +267,12 @@ class DatabaseService {
   // Get user's reviews
   static Stream<List<Review>> getUserReviews(String userId) {
     try {
-      return _firestore.collection(_usersCollection).doc(userId).collection('reviews').snapshots().map((snapshot) {
+      return _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('reviews')
+          .snapshots()
+          .map((snapshot) {
         final orderedDocs = snapshot.docs;
         orderedDocs.sort((a, b) => int.parse(a.id).compareTo(int.parse(b.id)));
         return orderedDocs.map((doc) => Review.fromMap(doc.data())).toList();
@@ -232,9 +284,14 @@ class DatabaseService {
   }
 
   // delete lesson from user's review
-  static Future<void> removeLessonFromReviews(String userId, String lessonId) async {
+  static Future<void> removeLessonFromReviews(
+      String userId, String lessonId) async {
     try {
-      DocumentReference ref = await _firestore.collection(_usersCollection).doc(userId).collection('reviews').doc(lessonId);
+      DocumentReference ref = await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('reviews')
+          .doc(lessonId);
       DocumentSnapshot doc = await ref.get();
       if (doc.exists) {
         await ref.delete();
@@ -256,12 +313,19 @@ class DatabaseService {
     int nextLessonIndex = currentLessonIndex + 1;
 
     while (nextLessonIndex <= totalLessons) {
-      final docSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(userId).collection('lessonProgress').doc(nextLessonIndex.toString()).get();
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('lessonProgress')
+          .doc(nextLessonIndex.toString())
+          .get();
 
-      final double existingScore = docSnapshot.exists ? (docSnapshot.data()?['score'] ?? 0).toDouble() : 0.0;
+      final double existingScore = docSnapshot.exists
+          ? (docSnapshot.data()?['score'] ?? 0).toDouble()
+          : 0.0;
       if (maxScore == 0) {
-        maxScore = 1; //Prevent NAN when it's no-exercise type of lesson e.g lesson 26
+        maxScore =
+            1; //Prevent NAN when it's no-exercise type of lesson e.g lesson 26
       }
       int percentScore = ((existingScore / maxScore) * 100).round();
 

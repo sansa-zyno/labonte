@@ -11,6 +11,7 @@ import 'package:french_app/provider/app_provider.dart';
 import 'package:french_app/provider/entitlement_provider.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/screens/getting_started.dart';
+import 'package:french_app/services/firebase_notifications_service.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
@@ -27,7 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     appProvider = Provider.of<AppProvider>(context, listen: false);
-    entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
+    entitlementProvider =
+        Provider.of<EntitlementProvider>(context, listen: false);
     // Delay for 2 seconds before navigating to the main screen
     Timer(const Duration(seconds: 2), () async {
       if (_auth.currentUser == null) {
@@ -38,11 +40,14 @@ class _SplashScreenState extends State<SplashScreen> {
         if (appProvider.userModel != null) {
           await Purchases.logIn(appProvider.userModel!.id);
           await entitlementProvider.init();
+          FirebaseNotificationService.initialize();
           changeScreenReplacement(context, BottomNavbar(pageIndex: 0));
         } else {
           showDialog(
             context: context,
-            builder: (ctx) => ShowDialogWidget(titleText: 'An error occurred, please check your network', subText: ""),
+            builder: (ctx) => ShowDialogWidget(
+                titleText: 'An error occurred, please check your network',
+                subText: ""),
           );
         }
       }
@@ -93,7 +98,9 @@ class _SplashScreenState extends State<SplashScreen> {
                     SizedBox(height: getVerticalSize(10, context)),
                     Text(
                       'Your standard French learning app.',
-                      style: TextStyle(fontSize: getFontSize(11, context), fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          fontSize: getFontSize(11, context),
+                          fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -102,9 +109,14 @@ class _SplashScreenState extends State<SplashScreen> {
             Spacer(),
             Text(
               'La Bonte', // Bottom branding text
-              style: TextStyle(fontSize: getFontSize(18, context), fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                  fontSize: getFontSize(18, context),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
-            SizedBox(height: getVerticalSize(20, context)), // Add spacing for bottom alignment
+            SizedBox(
+                height: getVerticalSize(
+                    20, context)), // Add spacing for bottom alignment
           ],
         ),
       ),

@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:french_app/constants/app_colors.dart';
 import 'package:french_app/constants/app_icons.dart';
@@ -10,6 +12,7 @@ import 'package:french_app/screens/decision.dart';
 import 'package:french_app/screens/home.dart';
 import 'package:french_app/screens/practice_with_ai.dart';
 import 'package:french_app/screens/profile/profile.dart';
+import 'package:french_app/services/local_notifications_service.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:upgrader/upgrader.dart';
@@ -18,7 +21,8 @@ import 'package:upgrader/upgrader.dart';
 class BottomNavbar extends StatefulWidget {
   final int pageIndex;
   Widget? newpage;
-  BottomNavbar({Key? key, required this.pageIndex, this.newpage}) : super(key: key);
+  BottomNavbar({Key? key, required this.pageIndex, this.newpage})
+      : super(key: key);
 
   @override
   State<BottomNavbar> createState() => _BottomNavbarState();
@@ -66,15 +70,39 @@ class _BottomNavbarState extends State<BottomNavbar> {
     // TODO: implement initState
     super.initState();
     appProvider = Provider.of<AppProvider>(context, listen: false);
-    textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
+    textToSpeechProvider =
+        Provider.of<TextToSpeechProvider>(context, listen: false);
 
     _home = Home();
-    _decisionScreen = DecisionScreen(isReview: false, previousPageIndex: 1, lessonData: null, lessonIndex: 1, subLessonIndex: 0);
+    _decisionScreen = DecisionScreen(
+        isReview: false,
+        previousPageIndex: 1,
+        lessonData: null,
+        lessonIndex: 1,
+        subLessonIndex: 0);
     _practiceiWithAI = PracticeiWithAI();
     _profile = Profile();
 
     pageIndex = widget.pageIndex;
     _showPage = _pageChooser(pageIndex);
+
+    //Get called when app is in foreground
+    FirebaseMessaging.onMessage.listen((message) {
+      log("onMessage called");
+      if (message.notification != null) {
+        LocalNotificationService.display(message);
+      }
+    });
+
+    //Get called when app is opened from background state by tapping on notification(Doesnt work for terminated state)
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      log("onMessageOpenedApp called");
+    });
+
+    //Get called when app is opened from terminated state by tapping on notification
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      log("getInitialMessage called");
+    });
   }
 
   @override
@@ -85,7 +113,8 @@ class _BottomNavbarState extends State<BottomNavbar> {
 
   @override
   Widget build(BuildContext context) {
-    EntitlementProvider entitlementProvider = Provider.of<EntitlementProvider>(context);
+    EntitlementProvider entitlementProvider =
+        Provider.of<EntitlementProvider>(context);
     return Scaffold(
         key: _scaffoldKey,
         //backgroundColor: Color(0xff0e6dfd),
@@ -153,7 +182,8 @@ class _BottomNavbarState extends State<BottomNavbar> {
             unselectedFontSize: getFontSize(fontSizeExtraSmall, context),
             selectedFontSize: getFontSize(fontSizeExtraSmall, context),
             onTap: (int tappedIndex) async {
-              await textToSpeechProvider.stop(); //To stop audio player when bottom navigating away from lesson screen
+              await textToSpeechProvider
+                  .stop(); //To stop audio player when bottom navigating away from lesson screen
               if (appProvider.continueLessonData != null && tappedIndex == 1) {
                 _decisionScreen = DecisionScreen(
                     isReview: appProvider.isReview,

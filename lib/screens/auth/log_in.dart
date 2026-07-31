@@ -14,6 +14,7 @@ import 'package:french_app/screens/auth/forgot_password.dart';
 import 'package:french_app/screens/auth/sign_up.dart';
 import 'package:french_app/screens/bottom_navbar.dart';
 import 'package:french_app/services/auth.dart';
+import 'package:french_app/services/firebase_notifications_service.dart';
 import 'package:french_app/widgets/custom_button.dart';
 import 'package:french_app/widgets/custom_text.dart';
 import 'package:french_app/widgets/custom_textfield.dart';
@@ -41,7 +42,8 @@ class _LoginState extends State<Login> {
     // TODO: implement initState
     super.initState();
     appProvider = Provider.of<AppProvider>(context, listen: false);
-    entitlementProvider = Provider.of<EntitlementProvider>(context, listen: false);
+    entitlementProvider =
+        Provider.of<EntitlementProvider>(context, listen: false);
   }
 
   @override
@@ -65,7 +67,9 @@ class _LoginState extends State<Login> {
                           Navigator.pop(context);
                         },
                         child: Icon(
-                          Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios,
+                          Platform.isAndroid
+                              ? Icons.arrow_back
+                              : Icons.arrow_back_ios,
                           size: getSize(20, context),
                         )),
                   ),
@@ -89,7 +93,9 @@ class _LoginState extends State<Login> {
                           children: [
                         TextSpan(text: 'Dont have an account? '),
                         TextSpan(
-                            recognizer: TapGestureRecognizer()..onTap = () => changeScreenReplacement(context, const SignUp()),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => changeScreenReplacement(
+                                  context, const SignUp()),
                             text: 'Sign Up',
                             style: TextStyle(
                               color: AppColors.primaryColor,
@@ -106,7 +112,9 @@ class _LoginState extends State<Login> {
                       controller: emailController,
                       hintText: 'Email',
                       validator: (value) {
-                        return validateEmail(emailController.text) ? null : "Enter a valid email address";
+                        return validateEmail(emailController.text)
+                            ? null
+                            : "Enter a valid email address";
                       }),
                   SizedBox(height: getVerticalSize(15, context)),
                   CustomTextField(
@@ -178,7 +186,8 @@ class _LoginState extends State<Login> {
     try {
       isloading = true;
       setState(() {});
-      String? userId = await AuthService.signInEmailAndPass(emailController.text, passwordController.text);
+      String? userId = await AuthService.signInEmailAndPass(
+          emailController.text, passwordController.text);
       if (userId == null) {
         throw 'An unexpected error occurred, please try again';
       } else {
@@ -188,11 +197,14 @@ class _LoginState extends State<Login> {
           //log("Firebase User Id: ${appProvider.userModel!.id}");
           await Purchases.logIn(appProvider.userModel!.id);
           await entitlementProvider.init();
+          FirebaseNotificationService.initialize();
           changeScreenRemoveUntill(context, BottomNavbar(pageIndex: 0));
         } else {
           showDialog(
             context: context,
-            builder: (ctx) => ShowDialogWidget(titleText: 'An error occurred, please check your network', subText: ""),
+            builder: (ctx) => ShowDialogWidget(
+                titleText: 'An error occurred, please check your network',
+                subText: ""),
           );
         }
         isloading = false;
@@ -203,7 +215,9 @@ class _LoginState extends State<Login> {
       setState(() {});
       showDialog(
         context: context,
-        builder: (ctx) => ShowDialogWidget(titleText: toSentenceCase(e.toString().replaceAll('-', " ")), subText: ""),
+        builder: (ctx) => ShowDialogWidget(
+            titleText: toSentenceCase(e.toString().replaceAll('-', " ")),
+            subText: ""),
       );
     }
   }

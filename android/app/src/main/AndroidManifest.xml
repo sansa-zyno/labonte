@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="com.android.vending.Billing" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 <!--Used by flutter_sound-->
 <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 <!--<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>-->
@@ -30,6 +31,11 @@
         android:label="La Bonte"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <!-- Required by Google Mobile Ads SDK.
+             Replace with your real AdMob App ID from admob.google.com -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5347757180230621~5211660735"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -51,7 +57,14 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
