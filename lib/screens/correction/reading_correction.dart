@@ -60,10 +60,12 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
 
   List<TextSpan> _buildColoredText() {
     // First normalize punctuation spacing
-    final normalizedPassage = _normalizePunctuation(widget.correction.reading!.passage);
+    final normalizedPassage =
+        _normalizePunctuation(widget.correction.reading!.passage);
     // Use a regex that separates words and punctuation but keeps them in the list
     final regex = RegExp(r"[\wÀ-ÿ\'’\-]+|[^\wÀ-ÿ\s]");
-    final originalTokens = regex.allMatches(normalizedPassage).map((m) => m.group(0)!).toList();
+    final originalTokens =
+        regex.allMatches(normalizedPassage).map((m) => m.group(0)!).toList();
 
     // Normalize recognized text to words only (no punctuation needed for matching)
     final recognizedWords = widget.correction.reading!.recognizedText
@@ -106,7 +108,8 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
+    textToSpeechProvider =
+        Provider.of<TextToSpeechProvider>(context, listen: false);
   }
 
   @override
@@ -156,11 +159,15 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
                 children: [
                   InkWell(
                       onTap: () {
-                        textToSpeechProvider.playPronunciation(widget.correction.reading!.passage);
+                        textToSpeechProvider.playPronunciation(
+                            widget.correction.reading!.passage);
                       },
-                      child: Image.asset(AppImages.speaker, height: 20, color: AppColors.primaryColor)),
+                      child: Image.asset(AppImages.speaker,
+                          height: 20, color: AppColors.primaryColor)),
                   SizedBox(width: 8),
-                  CustomText(text: widget.correction.lessonInstruction, weight: FontWeight.w500),
+                  CustomText(
+                      text: widget.correction.lessonInstruction,
+                      weight: FontWeight.w500),
                 ],
               ),
               SizedBox(height: getVerticalSize(20, context)),
@@ -172,7 +179,7 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16, height: 1.5),
                           children: _buildColoredText(),
                         ),
                       )
@@ -198,25 +205,34 @@ class _ReadingCorrectionState extends State<ReadingCorrection> {
                   text: 'Continue',
                   color: AppColors.buttonColor,
                   onpressed: () {
-                    double score = widget.correction.reading!.correctCount / widget.correction.reading!.totalCount;
+                    double score = widget.correction.reading!.correctCount /
+                        widget.correction.reading!.totalCount;
                     if (!textToSpeechProvider.loading) {
                       textToSpeechProvider.stop().then((_) {
-                        if (widget.exerciseIndex + 1 >= widget.lessonData.exercises.length) {
+                        if (widget.exerciseIndex + 1 >=
+                            widget.lessonData.exercises.length) {
                           double totalScore = widget.exerciseScore + score;
                           changeScreenReplacement(
                               context,
                               BottomNavbar(
                                 pageIndex: 1,
                                 newpage: LessonsCompleted(
-                                    isReview: widget.isReview, totalScore: totalScore, goToNext: widget.goToNext, lessonData: widget.lessonData),
+                                    isReview: widget.isReview,
+                                    totalScore: totalScore,
+                                    goToNext: widget.goToNext,
+                                    lessonData: widget.lessonData),
                               ));
                           DatabaseService.updateLessonProgress(
                             context: context,
-                            lessonIndex: widget.lessonData.lessonIndex.toString(),
+                            lessonIndex:
+                                widget.lessonData.lessonIndex.toString(),
                             lessonData: widget.lessonData,
-                            currentSubLessonIndex: widget.lessonData.subLessons.length,
+                            currentSubLessonIndex:
+                                widget.lessonData.subLessons.length,
                             currentExerciseIndex: widget.exerciseIndex + 1,
-                            totalLessonIndex: widget.lessonData.subLessons.length + widget.lessonData.exercises.length,
+                            totalLessonIndex:
+                                widget.lessonData.subLessons.length +
+                                    widget.lessonData.exercises.length,
                             score: totalScore,
                             lastUpdateTime: DateTime.now(),
                           );

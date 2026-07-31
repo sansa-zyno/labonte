@@ -52,19 +52,30 @@ class _ReadingTypeState extends State<ReadingType> {
   @override
   void initState() {
     super.initState();
-    textToSpeechProvider = Provider.of<TextToSpeechProvider>(context, listen: false);
-    speechToTextProvider = Provider.of<SpeechToTextProvider>(context, listen: false);
+    textToSpeechProvider =
+        Provider.of<TextToSpeechProvider>(context, listen: false);
+    speechToTextProvider =
+        Provider.of<SpeechToTextProvider>(context, listen: false);
     _passage = widget.snapshot['content'];
-    textToSpeechProvider.playPronunciation(widget.snapshot['instruction'].toString());
+    textToSpeechProvider
+        .playPronunciation(widget.snapshot['instruction'].toString());
   }
 
   void _calculateScore() {
     /*The regex is used to replace any sequence of one or more characters that are 
     NOT letters (including accented ones), digits, underscores, apostrophes, or hyphens 
     with a space ' '*/
-    List<String> originalWords = _passage.replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ').split(' ').where((w) => w.trim().isNotEmpty).toList();
-    List<String> recognizedWords =
-        _recognizedText.replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ').toLowerCase().split(' ').where((w) => w.trim().isNotEmpty).toList();
+    List<String> originalWords = _passage
+        .replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ')
+        .split(' ')
+        .where((w) => w.trim().isNotEmpty)
+        .toList();
+    List<String> recognizedWords = _recognizedText
+        .replaceAll(RegExp(r"[^\wÀ-ÿ\'-]+"), ' ')
+        .toLowerCase()
+        .split(' ')
+        .where((w) => w.trim().isNotEmpty)
+        .toList();
     int correct = 0;
     for (String word in originalWords) {
       if (recognizedWords.contains(word.toLowerCase())) {
@@ -99,11 +110,16 @@ class _ReadingTypeState extends State<ReadingType> {
     final normalizedPassage = _normalizePunctuation(_passage);
     // Use a regex that separates words and punctuation but keeps them in the list
     final regex = RegExp(r"[\wÀ-ÿ\'’\-]+|[^\wÀ-ÿ\s]");
-    final originalTokens = regex.allMatches(normalizedPassage).map((m) => m.group(0)!).toList();
+    final originalTokens =
+        regex.allMatches(normalizedPassage).map((m) => m.group(0)!).toList();
 
     // Normalize recognized text to words only (no punctuation needed for matching)
-    final recognizedWords =
-        _recognizedText.replaceAll(RegExp(r"[^\wÀ-ÿ\'’\-]+"), ' ').toLowerCase().split(' ').where((w) => w.trim().isNotEmpty).toList();
+    final recognizedWords = _recognizedText
+        .replaceAll(RegExp(r"[^\wÀ-ÿ\'’\-]+"), ' ')
+        .toLowerCase()
+        .split(' ')
+        .where((w) => w.trim().isNotEmpty)
+        .toList();
     int index = -1;
     return originalTokens.map((token) {
       // Check if token is punctuation
@@ -173,7 +189,8 @@ class _ReadingTypeState extends State<ReadingType> {
                       correctCount = 0;
                       totalCount = 0;
                     });
-                    String? text = await speechToTextProvider.startSpeechToText();
+                    String? text =
+                        await speechToTextProvider.startSpeechToText();
                     if (text != null) {
                       _recognizedText = text;
                       _calculateScore();
@@ -181,14 +198,19 @@ class _ReadingTypeState extends State<ReadingType> {
                   },
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundColor: (speechToTextProvider.sttState != STTState.finished && speechToTextProvider.sttState != STTState.error)
-                        ? Colors.green.shade100
-                        : Colors.red.shade100,
+                    backgroundColor:
+                        (speechToTextProvider.sttState != STTState.finished &&
+                                speechToTextProvider.sttState != STTState.error)
+                            ? Colors.green.shade100
+                            : Colors.red.shade100,
                     child: speechToTextProvider.sttState == STTState.processing
-                        ? Center(child: CircularProgressIndicator(color: Colors.green))
+                        ? Center(
+                            child:
+                                CircularProgressIndicator(color: Colors.green))
                         : speechToTextProvider.sttState == STTState.listening
                             ? RippleAnimation(
-                                child: Icon(Icons.mic, color: Colors.green, size: 50),
+                                child: Icon(Icons.mic,
+                                    color: Colors.green, size: 50),
                                 color: Colors.green.withOpacity(0.1),
                                 repeat: true,
                                 minRadius: 15,
@@ -200,11 +222,15 @@ class _ReadingTypeState extends State<ReadingType> {
                 ),
               ),
               SizedBox(height: getVerticalSize(15, context)),
-              CustomText(text: widget.snapshot['instruction'], weight: FontWeight.w500),
+              CustomText(
+                  text: widget.snapshot['instruction'],
+                  weight: FontWeight.w500),
               SizedBox(height: getVerticalSize(15, context)),
               // Score Display
               Center(
-                child: Text("Score: $correctCount / $totalCount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text("Score: $correctCount / $totalCount",
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
               ),
               SizedBox(height: getVerticalSize(15, context)),
               // Highlighted paragraph
@@ -213,7 +239,7 @@ class _ReadingTypeState extends State<ReadingType> {
                 child: SingleChildScrollView(
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16, height: 1.5),
                       children: _buildColoredText(),
                     ),
                   ),
@@ -225,26 +251,38 @@ class _ReadingTypeState extends State<ReadingType> {
                   visible: speechToTextProvider.sttState == STTState.listening,
                   child: Text(
                     'Listening to your speech...',
-                    style: TextStyle(color: Colors.green, fontSize: 14, fontStyle: FontStyle.italic),
+                    style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic),
                     textAlign: TextAlign.center,
                   )),
               Visibility(
                   visible: speechToTextProvider.sttState == STTState.processing,
                   child: Text(
                     'Processing your speech...',
-                    style: TextStyle(color: Colors.green, fontSize: 14, fontStyle: FontStyle.italic),
+                    style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic),
                     textAlign: TextAlign.center,
                   )),
               Visibility(
                   visible: speechToTextProvider.sttState == STTState.error,
                   child: Text(
                     'An error occurred, check your network connection...',
-                    style: TextStyle(color: AppColors.red, fontSize: 14, fontStyle: FontStyle.italic),
+                    style: TextStyle(
+                        color: AppColors.red,
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic),
                     textAlign: TextAlign.center,
                   )),
               SizedBox(height: getVerticalSize(30, context)),
               Opacity(
-                opacity: (speechToTextProvider.sttState != STTState.finished && speechToTextProvider.sttState != STTState.error) ? 0.3 : 1.0,
+                opacity: (speechToTextProvider.sttState != STTState.finished &&
+                        speechToTextProvider.sttState != STTState.error)
+                    ? 0.3
+                    : 1.0,
                 child: CustomButton(
                   text: 'Continue',
                   color: AppColors.buttonColor,
@@ -252,18 +290,21 @@ class _ReadingTypeState extends State<ReadingType> {
                     if (totalCount == 0) {
                       totalCount = 1; //To prevent NaN
                     }
-                    if (speechToTextProvider.sttState == STTState.finished || speechToTextProvider.sttState == STTState.error) {
+                    if (speechToTextProvider.sttState == STTState.finished ||
+                        speechToTextProvider.sttState == STTState.error) {
                       ExerciseCorrection correction = ExerciseCorrection(
                           id: widget.snapshot.id,
                           type: widget.snapshot['type'],
-                          lessonTitle: '${widget.snapshot['title']} - Corrections',
+                          lessonTitle:
+                              '${widget.snapshot['title']} - Corrections',
                           lessonInstruction: 'Tap audio to play the correction',
                           reading: Reading(
                             passage: _passage,
                             recognizedText: _recognizedText,
                             correctCount: correctCount,
                             totalCount: totalCount,
-                            note: 'Note: Words pronounced correctly are highlighted green while wrong ones are highlighted red.',
+                            note:
+                                'Note: Words pronounced correctly are highlighted green while wrong ones are highlighted red.',
                           ));
                       changeScreenReplacement(
                           context,
@@ -276,7 +317,8 @@ class _ReadingTypeState extends State<ReadingType> {
                               lessonData: widget.lessonData,
                               exerciseIndex: widget.exerciseIndex,
                               exerciseScore: widget.exerciseScore,
-                              exerciseScoreTrackingList: widget.exerciseScoreTrackingList,
+                              exerciseScoreTrackingList:
+                                  widget.exerciseScoreTrackingList,
                             ),
                           ));
                     }
